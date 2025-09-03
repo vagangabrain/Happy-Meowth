@@ -21,6 +21,24 @@ async def initialize_predictor():
     except Exception as e:
         print(f"Failed to initialize predictor: {e}")
 
+def format_pokemon_prediction(name, confidence):
+    """Format the Pokemon prediction output, handling gender variants"""
+    # Check if the Pokemon name contains gender information
+    if name.endswith("-Male") or name.endswith("-Female"):
+        # Extract the base name and gender
+        if name.endswith("-Male"):
+            base_name = name[:-5]  # Remove "-Male"
+            gender = "Male"
+        else:  # endswith("-Female")
+            base_name = name[:-7]  # Remove "-Female"
+            gender = "Female"
+        
+        # Return formatted string with gender on separate line
+        return f"{base_name}: {confidence}\nGender: {gender}"
+    else:
+        # Return normal format for Pokemon without gender variants
+        return f"{name}: {confidence}"
+
 @bot.event
 async def on_ready():
     print(f"Logged in as {bot.user}")
@@ -42,22 +60,39 @@ async def on_message(message):
 
     # 1) Test command
     if message.content.lower() == "m!ping":
-        await message.reply("Pong!")
+        await message.channel.send("Pong!")
         return
 
     # 2) Manual predict command
-    if message.content.startswith("m!predict "):
-        url_part = message.content.split(" ", 1)
-        if len(url_part) < 2:
-            await message.reply("Please provide an image URL after m!predict")
+    if message.content.startswith("m!predict"):
+        image_url = None
+        
+        # Check if there's a URL in the command
+        url_parts = message.content.split(" ", 1)
+        if len(url_parts) > 1 and url_parts[1].strip():
+            image_url = url_parts[1].strip()
+        
+        # If no URL provided, check if replying to a message with image
+        elif message.reference:
+            try:
+                replied_message = await message.channel.fetch_message(message.reference.message_id)
+                image_url = await get_image_url_from_message(replied_message)
+            except discord.NotFound:
+                await message.reply("Could not find the replied message.")
+                return
+            except discord.Forbidden:
+                await message.reply("I don't have permission to access that message.")
+                return
+        
+        # If still no image URL found
+        if not image_url:
+            await message.reply("Please provide an image URL after m!predict or reply to a message with an image.")
             return
-            
-        url = url_part[1].strip()
-        await message.reply("Identifying Pokemon...")
         
         try:
-            name, confidence = predictor.predict(url)
-            await message.reply(f"{name}: {confidence}")
+            name, confidence = predictor.predict(image_url)
+            formatted_output = format_pokemon_prediction(name, confidence)
+            await message.reply(formatted_output)
         except Exception as e:
             await message.reply(f"Error: {e}")
         return
@@ -82,7 +117,8 @@ async def on_message(message):
                             # Add confidence threshold to avoid low-confidence predictions
                             confidence_value = float(confidence.rstrip('%'))
                             if confidence_value >= 70.0:  # Only show if confidence >= 70%
-                                await message.reply(f"{name}: {confidence}")
+                                formatted_output = format_pokemon_prediction(name, confidence)
+                                await message.reply(formatted_output)
                             else:
                                 print(f"Low confidence prediction skipped: {name} ({confidence})")
                         except Exception as e:
