@@ -115,12 +115,13 @@ class PokemonCollectionCog(commands.Cog):
             await ctx.send("Please specify a Pokemon name!")
             return
         
-        # Validate Pokemon name
+        # Validate Pokemon name (including other language names)
         pokemon = self.get_pokemon_by_name(pokemon_name)
         if not pokemon:
             await ctx.send(f"❌ '{pokemon_name}' is not a valid Pokemon name!")
             return
         
+        # Always use the English name for storage
         correct_name = pokemon['name']
         guild_id = ctx.guild.id
         user_id = ctx.author.id
@@ -133,7 +134,7 @@ class PokemonCollectionCog(commands.Cog):
         
         if user_collection:
             if correct_name in user_collection.get('pokemon', []):
-                await ctx.send(f"❌ You already have {correct_name} in your collection!")
+                await ctx.send(f"❌ You already have **{correct_name}** in your collection!")
                 return
             
             # Add to existing collection
@@ -149,6 +150,13 @@ class PokemonCollectionCog(commands.Cog):
                 "pokemon": [correct_name]
             })
         
+        # Show confirmation with input name if different from English name
+        input_name = pokemon_name if pokemon_name.lower() != correct_name.lower() else correct_name
+        if input_name != correct_name:
+            confirmation_text = f"✅ Added **{correct_name}** (from '{input_name}') to your collection!"
+        else:
+            confirmation_text = f"✅ Added **{correct_name}** to your collection!"
+        
         # Show what variants will be included
         variants = self.get_base_pokemon_and_variants(correct_name)
         if len(variants) > 1 and not pokemon.get('is_variant', False):
@@ -157,7 +165,7 @@ class PokemonCollectionCog(commands.Cog):
         else:
             variant_text = ""
         
-        await ctx.send(f"✅ Added **{correct_name}** to your collection!{variant_text}")
+        await ctx.send(f"{confirmation_text}{variant_text}")
     
     @collection.command(name='remove')
     async def remove_pokemon(self, ctx, *, pokemon_name: str):
@@ -166,12 +174,13 @@ class PokemonCollectionCog(commands.Cog):
             await ctx.send("Please specify a Pokemon name!")
             return
         
-        # Validate Pokemon name
+        # Validate Pokemon name (including other language names)
         pokemon = self.get_pokemon_by_name(pokemon_name)
         if not pokemon:
             await ctx.send(f"❌ '{pokemon_name}' is not a valid Pokemon name!")
             return
         
+        # Always use the English name
         correct_name = pokemon['name']
         guild_id = ctx.guild.id
         user_id = ctx.author.id
