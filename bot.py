@@ -17,13 +17,13 @@ async def initialize_predictor():
     global predictor
     try:
         predictor = Prediction()
-        print("✅ Predictor initialized successfully")
+        print("Predictor initialized successfully")
     except Exception as e:
-        print(f"❌ Failed to initialize predictor: {e}")
+        print(f"Failed to initialize predictor: {e}")
 
 @bot.event
 async def on_ready():
-    print(f"✅ Logged in as {bot.user}")
+    print(f"Logged in as {bot.user}")
     if predictor is None:
         await initialize_predictor()
 
@@ -32,76 +32,61 @@ async def on_message(message):
     # Don't respond to the bot's own messages
     if message.author == bot.user:
         return
-    
-    print(f"📩 Message from {message.author}: {message.content}")
 
     # Check if predictor is available
     if predictor is None:
-        print("⚠️ Predictor not initialized, attempting to initialize...")
+        print("Predictor not initialized, attempting to initialize...")
         await initialize_predictor()
         if predictor is None:
             return
 
     # 1) Test command
-    if message.content.lower() == "!ping":
-        await message.channel.send("🏓 Pong!")
+    if message.content.lower() == "m!ping":
+        await message.reply("Pong!")
         return
 
     # 2) Manual predict command
-    if message.content.startswith("!identify "):
+    if message.content.startswith("m!predict "):
         url_part = message.content.split(" ", 1)
         if len(url_part) < 2:
-            await message.channel.send("❌ Please provide an image URL after !identify")
+            await message.reply("Please provide an image URL after m!predict")
             return
             
         url = url_part[1].strip()
-        await message.channel.send("🔍 Identifying Pokémon...")
+        await message.reply("Identifying Pokemon...")
         
         try:
             name, confidence = predictor.predict(url)
-            # Format name: replace underscores and hyphens, capitalize properly
-            formatted_name = format_pokemon_name(name)
-            await message.channel.send(f"{formatted_name}: {confidence}")
+            await message.reply(f"{name}: {confidence}")
         except Exception as e:
-            await message.channel.send(f"❌ Error: {e}")
+            await message.reply(f"Error: {e}")
         return
 
-    # 3) Auto-detect Pokétwo spawns
-    if message.author.id == 716390085896962058:  # Pokétwo user ID
-        image_url = await get_image_url_from_message(message)
-        
-        if image_url:
-            try:
-                name, confidence = predictor.predict(image_url)
-                formatted_name = format_pokemon_name(name)
-                
-                # Add confidence threshold to avoid low-confidence predictions
-                confidence_value = float(confidence.rstrip('%'))
-                if confidence_value >= 70.0:  # Only show if confidence >= 70%
-                    await message.channel.send(f"{formatted_name}: {confidence}")
-                else:
-                    print(f"Low confidence prediction skipped: {formatted_name} ({confidence})")
-            except Exception as e:
-                print(f"❌ Auto-detection error: {e}")
-                # Don't send error messages for auto-detection to avoid spam
-
-def format_pokemon_name(name):
-    """Format Pokemon name for better display"""
-    # Replace underscores and hyphens with spaces
-    formatted = name.replace("_", " ").replace("-", " ")
-    
-    # Capitalize each word
-    words = formatted.split()
-    capitalized_words = []
-    
-    for word in words:
-        # Special handling for certain Pokemon name patterns
-        if word.lower() in ['jr', 'mime', 'oh']:
-            capitalized_words.append(word.upper() if word.lower() in ['jr'] else word.capitalize())
-        else:
-            capitalized_words.append(word.capitalize())
-    
-    return " ".join(capitalized_words)
+    # 3) Auto-detect Poketwo spawns
+    if message.author.id == 716390085896962058:  # Poketwo user ID
+        # Check if message has embeds with the specific titles
+        if message.embeds:
+            embed = message.embeds[0]
+            if embed.title:
+                # Check for spawn embed titles
+                if (embed.title == "A wild pokémon has appeared!" or 
+                    (embed.title.endswith("A new wild pokémon has appeared!") and 
+                     "fled." in embed.title)):
+                    
+                    image_url = await get_image_url_from_message(message)
+                    
+                    if image_url:
+                        try:
+                            name, confidence = predictor.predict(image_url)
+                            
+                            # Add confidence threshold to avoid low-confidence predictions
+                            confidence_value = float(confidence.rstrip('%'))
+                            if confidence_value >= 70.0:  # Only show if confidence >= 70%
+                                await message.reply(f"{name}: {confidence}")
+                            else:
+                                print(f"Low confidence prediction skipped: {name} ({confidence})")
+                        except Exception as e:
+                            print(f"Auto-detection error: {e}")
 
 async def get_image_url_from_message(message):
     """Extract image URL from message attachments or embeds"""
@@ -126,15 +111,15 @@ async def get_image_url_from_message(message):
 
 def main():
     if not TOKEN:
-        print("❌ Error: DISCORD_TOKEN environment variable not set")
+        print("Error: DISCORD_TOKEN environment variable not set")
         return
     
     try:
         bot.run(TOKEN)
     except discord.LoginFailure:
-        print("❌ Error: Invalid Discord token")
+        print("Error: Invalid Discord token")
     except Exception as e:
-        print(f"❌ Error starting bot: {e}")
+        print(f"Error starting bot: {e}")
 
 if __name__ == "__main__":
     main()
