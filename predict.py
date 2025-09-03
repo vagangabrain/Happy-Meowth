@@ -48,9 +48,11 @@ class Prediction:
         with open(self.labels_path, "r", encoding="utf-8") as f:
             data = json.load(f)
             if isinstance(data, dict):
-                return [data[k] for k in sorted(data, key=lambda x: int(x))]
+                # Sort by numeric keys and extract Pokemon names
+                sorted_keys = sorted(data.keys(), key=lambda x: int(x))
+                return [data[k].strip('"') for k in sorted_keys]  # Remove quotes if present
             if isinstance(data, list):
-                return data
+                return [name.strip('"') for name in data]  # Remove quotes if present
             raise ValueError("labels_v2.json must be a list or dict")
 
     def preprocess_image_from_url(self, url):
