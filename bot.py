@@ -61,7 +61,7 @@ async def on_message(message):
             name, confidence = predictor.predict(url)
             # Format name: replace underscores and hyphens, capitalize properly
             formatted_name = format_pokemon_name(name)
-            await message.channel.send(f"**{formatted_name}**: {confidence}")
+            await message.channel.send(f"{formatted_name}: {confidence}")
         except Exception as e:
             await message.channel.send(f"❌ Error: {e}")
         return
@@ -78,7 +78,7 @@ async def on_message(message):
                 # Add confidence threshold to avoid low-confidence predictions
                 confidence_value = float(confidence.rstrip('%'))
                 if confidence_value >= 70.0:  # Only show if confidence >= 70%
-                    await message.channel.send(f"**{formatted_name}**: {confidence}")
+                    await message.channel.send(f"{formatted_name}: {confidence}")
                 else:
                     print(f"Low confidence prediction skipped: {formatted_name} ({confidence})")
             except Exception as e:
