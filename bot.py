@@ -35,22 +35,61 @@ async def initialize_database():
             print("Warning: MONGODB_URI not set, collection features disabled")
             return
         
-        # Configure MongoDB client with SSL settings for Railway/cloud compatibility
-        db_client = AsyncIOMotorClient(
-            MONGODB_URI,
-            tls=True,
-            tlsAllowInvalidCertificates=True,
-            serverSelectionTimeoutMS=5000,
-            connectTimeoutMS=10000,
-            socketTimeoutMS=20000,
-            maxPoolSize=1,
-            retryWrites=True
-        )
+        print(f"Connecting to MongoDB with URI: {MONGODB_URI[:20]}...")  # Only show first 20 chars for security
         
-        # Test the connection
-        await db_client.admin.command('ping')
-        db = db_client.pokemon_collector
-        print("Database initialized successfully")
+        # Try different TLS configurations for Railway compatibility
+        tls_configs = [
+            # Config 1: Standard TLS
+            {
+                "serverSelectionTimeoutMS": 5000,
+                "connectTimeoutMS": 10000,
+                "socketTimeoutMS": 20000,
+                "maxPoolSize": 1,
+                "retryWrites": True
+            },
+            # Config 2: TLS with invalid certificates allowed
+            {
+                "tls": True,
+                "tlsAllowInvalidCertificates": True,
+                "serverSelectionTimeoutMS": 5000,
+                "connectTimeoutMS": 10000,
+                "socketTimeoutMS": 20000,
+                "maxPoolSize": 1,
+                "retryWrites": True
+            },
+            # Config 3: TLS insecure mode
+            {
+                "tls": True,
+                "tlsInsecure": True,
+                "serverSelectionTimeoutMS": 5000,
+                "connectTimeoutMS": 10000,
+                "socketTimeoutMS": 20000,
+                "maxPoolSize": 1,
+                "retryWrites": True
+            }
+        ]
+        
+        for i, config in enumerate(tls_configs, 1):
+            try:
+                print(f"Trying TLS configuration {i}...")
+                db_client = AsyncIOMotorClient(MONGODB_URI, **config)
+                
+                # Test the connection
+                await asyncio.wait_for(db_client.admin.command('ping'), timeout=10)
+                db = db_client.pokemon_collector
+                print(f"Database initialized successfully with config {i}")
+                return
+                
+            except Exception as e:
+                print(f"TLS config {i} failed: {e}")
+                if db_client:
+                    db_client.close()
+                db_client = None
+                db = None
+                continue
+        
+        print("All TLS configurations failed")
+        
     except Exception as e:
         print(f"Failed to initialize database: {e}")
         db_client = None
