@@ -15,8 +15,7 @@ def normalize_pokemon_name(name):
     """
     Normalize Pokemon name by:
     1. Removing accents/diacritics
-    2. Removing gender suffixes (♀, ♂, -Male, -Female)
-    3. Converting to lowercase for comparison
+    2. Removing gender suffixes (-Male, -Female)
     """
     if not name:
         return ""
@@ -27,16 +26,12 @@ def normalize_pokemon_name(name):
     without_accents = ''.join(char for char in normalized if unicodedata.category(char) != 'Mn')
 
     # Remove gender suffixes
-    # Remove ♀ and ♂ symbols
-    without_gender = without_accents.replace('♀', '').replace('♂', '')
+    if without_accents.endswith("-Male"):
+        without_accents = without_accents[:-5]  # Remove "-Male"
+    elif without_accents.endswith("-Female"):
+        without_accents = without_accents[:-7]  # Remove "-Female"
 
-    # Remove -Male and -Female suffixes
-    if without_gender.endswith("-Male"):
-        without_gender = without_gender[:-5]
-    elif without_gender.endswith("-Female"):
-        without_gender = without_gender[:-7]
-
-    return without_gender.strip()
+    return without_accents.strip()
 
 def find_pokemon_by_name(name, pokemon_data):
     """Find Pokemon by name (including other language names) - original function"""
