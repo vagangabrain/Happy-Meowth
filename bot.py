@@ -35,11 +35,25 @@ async def initialize_database():
             print("Warning: MONGODB_URI not set, collection features disabled")
             return
         
-        db_client = AsyncIOMotorClient(MONGODB_URI)
+        # Configure MongoDB client with SSL settings for Railway/cloud compatibility
+        db_client = AsyncIOMotorClient(
+            MONGODB_URI,
+            tls=True,
+            tlsAllowInvalidCertificates=True,
+            serverSelectionTimeoutMS=5000,
+            connectTimeoutMS=10000,
+            socketTimeoutMS=20000,
+            maxPoolSize=1
+        )
+        
+        # Test the connection
+        await db_client.admin.command('ping')
         db = db_client.pokemon_collector
         print("Database initialized successfully")
     except Exception as e:
         print(f"Failed to initialize database: {e}")
+        db_client = None
+        db = None
 
 def load_pokemon_data():
     """Load Pokemon data from pokemondata.json"""
