@@ -227,7 +227,7 @@ async def clear_user_collection(user_id, guild_id):
 
 async def list_user_collection(user_id, guild_id):
     """List user's Pokemon collection for the guild"""
-    if not db:
+    if db is None:
         return "Database not available"
     
     try:
