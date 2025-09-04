@@ -25,10 +25,11 @@
     "dex_number": 3,
     "name": "Venusaur",
     "other_names": {
-    "🇯🇵": "Fushigibana",
-    "🇬🇧": "Venusaur",
-    "🇩🇪": "Bisaflor",
-    "🇫🇷": "Florizarre"},
+      "🇯🇵": "Fushigibana",
+      "🇬🇧": "Venusaur",
+      "🇩🇪": "Bisaflor",
+      "🇫🇷": "Florizarre"
+    },
     "is_variant": false
   },
   {
@@ -295,7 +296,12 @@
   {
     "dex_number": 19,
     "name": "Rattata",
-    "other_names": {},
+    "other_names": {
+      "🇯🇵": "Koratta",
+      "🇬🇧": "Rattata",
+      "🇩🇪": "Rattfratz",
+      "🇫🇷": "Rattata"
+    },
     "is_variant": false
   },
   {
@@ -382,7 +388,12 @@
   {
     "dex_number": 25,
     "name": "Pikachu",
-    "other_names": {},
+    "other_names": {
+      "🇯🇵": "Pikachu",
+      "🇬🇧": "Pikachu",
+      "🇩🇪": "Pikachu",
+      "🇫🇷": "Pikachu"
+    },
     "is_variant": false
   },
   {
@@ -772,7 +783,12 @@
   {
     "dex_number": 41,
     "name": "Zubat",
-    "other_names": {},
+    "other_names": {
+      "🇯🇵": "Zubat",
+      "🇬🇧": "Zubat",
+      "🇩🇪": "Zubat",
+      "🇫🇷": "Nosferapti"
+    },
     "is_variant": false
   },
   {
@@ -811,7 +827,12 @@
   {
     "dex_number": 45,
     "name": "Vileplume",
-    "other_names": {},
+    "other_names": {
+      "🇯🇵": "Ruffresia",
+      "🇬🇧": "Vileplume",
+      "🇩🇪": "Giflor",
+      "🇫🇷": "Rafflesia"
+    },
     "is_variant": false
   },
   {
@@ -1106,7 +1127,12 @@
   {
     "dex_number": 64,
     "name": "Kadabra",
-    "other_names": {},
+    "other_names": {
+      "🇯🇵": "Yungerer",
+      "🇬🇧": "Kadabra",
+      "🇩🇪": "Kadabra",
+      "🇫🇷": "Kadabra"
+    },
     "is_variant": false
   },
   {
@@ -1454,7 +1480,12 @@
   {
     "dex_number": 85,
     "name": "Dodrio",
-    "other_names": {},
+    "other_names": {
+      "🇯🇵": "Dodorio",
+      "🇬🇧": "Dodrio",
+      "🇩🇪": "Dodri",
+      "🇫🇷": "Dodrio"
+    },
     "is_variant": false
   },
   {
@@ -1628,7 +1659,12 @@
   {
     "dex_number": 97,
     "name": "Hypno",
-    "other_names": {},
+    "other_names": {
+      "🇯🇵": "Sleeper",
+      "🇬🇧": "Hypno",
+      "🇩🇪": "Hypno",
+      "🇫🇷": "Hypnomade"
+    },
     "is_variant": false
   },
   {
@@ -1853,7 +1889,12 @@
   {
     "dex_number": 112,
     "name": "Rhydon",
-    "other_names": {},
+    "other_names": {
+      "🇯🇵": "Sidon",
+      "🇬🇧": "Rhydon",
+      "🇩🇪": "Rizeros",
+      "🇫🇷": "Rhinoféros"
+    },
     "is_variant": false
   },
   {
@@ -1937,7 +1978,12 @@
   {
     "dex_number": 119,
     "name": "Seaking",
-    "other_names": {},
+    "other_names": {
+      "🇯🇵": "Azumao",
+      "🇬🇧": "Seaking",
+      "🇩🇪": "Golking",
+      "🇫🇷": "Poissoroy"
+    },
     "is_variant": false
   },
   {
@@ -2093,7 +2139,12 @@
   {
     "dex_number": 129,
     "name": "Magikarp",
-    "other_names": {},
+    "other_names": {
+      "🇯🇵": "Koiking",
+      "🇬🇧": "Magikarp",
+      "🇩🇪": "Karpador",
+      "🇫🇷": "Magicarpe"
+    },
     "is_variant": false
   },
   {
@@ -2473,7 +2524,12 @@
   {
     "dex_number": 154,
     "name": "Meganium",
-    "other_names": {},
+    "other_names": {
+      "🇯🇵": "Meganium",
+      "🇬🇧": "Meganium",
+      "🇩🇪": "Meganie",
+      "🇫🇷": "Méganium"
+    },
     "is_variant": false
   },
   {
@@ -2754,7 +2810,12 @@
   {
     "dex_number": 178,
     "name": "Xatu",
-    "other_names": {},
+    "other_names": {
+      "🇯🇵": "Natio",
+      "🇬🇧": "Xatu",
+      "🇩🇪": "Xatu",
+      "🇫🇷": "Xatu"
+    },
     "is_variant": false
   },
   {
@@ -2849,7 +2910,12 @@
   {
     "dex_number": 186,
     "name": "Politoed",
-    "other_names": {},
+    "other_names": {
+      "🇯🇵": "Nyorotono",
+      "🇬🇧": "Politoed",
+      "🇩🇪": "Quaxo",
+      "🇫🇷": "Tarpaud"
+    },
     "is_variant": false
   },
   {
@@ -2932,7 +2998,12 @@
   {
     "dex_number": 194,
     "name": "Wooper",
-    "other_names": {},
+    "other_names": {
+      "🇯🇵": "Upah",
+      "🇬🇧": "Wooper",
+      "🇩🇪": "Felino",
+      "🇫🇷": "Axoloto"
+    },
     "is_variant": false
   },
   {
@@ -2981,7 +3052,12 @@
   {
     "dex_number": 198,
     "name": "Murkrow",
-    "other_names": {},
+    "other_names": {
+      "🇯🇵": "Yamikarasu",
+      "🇬🇧": "Murkrow",
+      "🇩🇪": "Kramurx",
+      "🇫🇷": "Cornèbre"
+    },
     "is_variant": false
   },
   {
@@ -3338,7 +3414,12 @@
   {
     "dex_number": 203,
     "name": "Girafarig",
-    "other_names": {},
+    "other_names": {
+      "🇯🇵": "Kirinriki",
+      "🇬🇧": "Girafarig",
+      "🇩🇪": "Girafarig",
+      "🇫🇷": "Girafarig"
+    },
     "is_variant": false
   },
   {
@@ -3377,7 +3458,12 @@
   {
     "dex_number": 207,
     "name": "Gligar",
-    "other_names": {},
+    "other_names": {
+      "🇯🇵": "Gliger",
+      "🇬🇧": "Gligar",
+      "🇩🇪": "Skorgla",
+      "🇫🇷": "Scorplane"
+    },
     "is_variant": false
   },
   {
@@ -3483,7 +3569,12 @@
   {
     "dex_number": 214,
     "name": "Heracross",
-    "other_names": {},
+    "other_names": {
+      "🇯🇵": "Heracros",
+      "🇬🇧": "Heracross",
+      "🇩🇪": "Skaraborn",
+      "🇫🇷": "Scarhino"
+    },
     "is_variant": false
   },
   {
@@ -3533,7 +3624,12 @@
   {
     "dex_number": 217,
     "name": "Ursaring",
-    "other_names": {},
+    "other_names": {
+      "🇯🇵": "Ringuma",
+      "🇬🇧": "Ursaring",
+      "🇩🇪": "Ursaring",
+      "🇫🇷": "Ursaring"
+    },
     "is_variant": false
   },
   {
@@ -3615,7 +3711,12 @@
   {
     "dex_number": 224,
     "name": "Octillery",
-    "other_names": {},
+    "other_names": {
+      "🇯🇵": "Okutank",
+      "🇬🇧": "Octillery",
+      "🇩🇪": "Octillery",
+      "🇫🇷": "Octillery"
+    },
     "is_variant": false
   },
   {
@@ -3710,7 +3811,12 @@
   {
     "dex_number": 232,
     "name": "Donphan",
-    "other_names": {},
+    "other_names": {
+      "🇯🇵": "Donfan",
+      "🇬🇧": "Donphan",
+      "🇩🇪": "Donphan",
+      "🇫🇷": "Donphan"
+    },
     "is_variant": false
   },
   {
@@ -3999,7 +4105,12 @@
   {
     "dex_number": 256,
     "name": "Combusken",
-    "other_names": {},
+    "other_names": {
+      "🇯🇵": "Wakasyamo",
+      "🇬🇧": "Combusken",
+      "🇩🇪": "Jungglut",
+      "🇫🇷": "Galifeu"
+    },
     "is_variant": false
   },
   {
@@ -4159,7 +4270,12 @@
   {
     "dex_number": 267,
     "name": "Beautifly",
-    "other_names": {},
+    "other_names": {
+      "🇯🇵": "Agehunt",
+      "🇬🇧": "Beautifly",
+      "🇩🇪": "Papinella",
+      "🇫🇷": "Charmillon"
+    },
     "is_variant": false
   },
   {
@@ -4209,7 +4325,12 @@
   {
     "dex_number": 272,
     "name": "Ludicolo",
-    "other_names": {},
+    "other_names": {
+      "🇯🇵": "Runpappa",
+      "🇬🇧": "Ludicolo",
+      "🇩🇪": "Kappalores",
+      "🇫🇷": "Ludicolo"
+    },
     "is_variant": false
   },
   {
@@ -4637,7 +4758,12 @@
   {
     "dex_number": 307,
     "name": "Meditite",
-    "other_names": {},
+    "other_names": {
+      "🇯🇵": "Asanan",
+      "🇬🇧": "Meditite",
+      "🇩🇪": "Meditie",
+      "🇫🇷": "Méditikka"
+    },
     "is_variant": false
   },
   {
@@ -4744,7 +4870,12 @@
   {
     "dex_number": 315,
     "name": "Roselia",
-    "other_names": {},
+    "other_names": {
+      "🇯🇵": "Roselia",
+      "🇬🇧": "Roselia",
+      "🇩🇪": "Roselia",
+      "🇫🇷": "Rosélia"
+    },
     "is_variant": false
   },
   {
@@ -4761,7 +4892,12 @@
   {
     "dex_number": 317,
     "name": "Swalot",
-    "other_names": {},
+    "other_names": {
+      "🇯🇵": "Marunoom",
+      "🇬🇧": "Swalot",
+      "🇩🇪": "Schlukwech",
+      "🇫🇷": "Avaltout"
+    },
     "is_variant": false
   },
   {
@@ -4834,7 +4970,12 @@
   {
     "dex_number": 323,
     "name": "Camerupt",
-    "other_names": {},
+    "other_names": {
+      "🇯🇵": "Bakuuda",
+      "🇬🇧": "Camerupt",
+      "🇩🇪": "Camerupt",
+      "🇫🇷": "Camérupt"
+    },
     "is_variant": false
   },
   {
@@ -4940,7 +5081,12 @@
   {
     "dex_number": 332,
     "name": "Cacturne",
-    "other_names": {},
+    "other_names": {
+      "🇯🇵": "Noctus",
+      "🇬🇧": "Cacturne",
+      "🇩🇪": "Noktuska",
+      "🇫🇷": "Cacturne"
+    },
     "is_variant": false
   },
   {
@@ -5426,7 +5572,12 @@
   {
     "dex_number": 369,
     "name": "Relicanth",
-    "other_names": {},
+    "other_names": {
+      "🇯🇵": "Glanth",
+      "🇬🇧": "Relicanth",
+      "🇩🇪": "Relicanth",
+      "🇫🇷": "Relicanth"
+    },
     "is_variant": false
   },
   {
@@ -5856,7 +6007,12 @@
   {
     "dex_number": 396,
     "name": "Starly",
-    "other_names": {},
+    "other_names": {
+      "🇯🇵": "Mukkuru",
+      "🇬🇧": "Starly",
+      "🇩🇪": "Staralili",
+      "🇫🇷": "Étourmi"
+    },
     "is_variant": false
   },
   {
@@ -5873,7 +6029,12 @@
   {
     "dex_number": 398,
     "name": "Staraptor",
-    "other_names": {},
+    "other_names": {
+      "🇯🇵": "Mukuhawk",
+      "🇬🇧": "Staraptor",
+      "🇩🇪": "Staraptor",
+      "🇫🇷": "Étouraptor"
+    },
     "is_variant": false
   },
   {
@@ -5901,19 +6062,34 @@
   {
     "dex_number": 401,
     "name": "Kricketot",
-    "other_names": {},
+    "other_names": {
+      "🇯🇵": "Korobohshi",
+      "🇬🇧": "Kricketot",
+      "🇩🇪": "Zirpurze",
+      "🇫🇷": "Crikzik"
+    },
     "is_variant": false
   },
   {
     "dex_number": 402,
     "name": "Kricketune",
-    "other_names": {},
+    "other_names": {
+      "🇯🇵": "Korotock",
+      "🇬🇧": "Kricketune",
+      "🇩🇪": "Zirpeise",
+      "🇫🇷": "Mélokrik"
+    },
     "is_variant": false
   },
   {
     "dex_number": 403,
     "name": "Shinx",
-    "other_names": {},
+    "other_names": {
+      "🇯🇵": "Kolink",
+      "🇬🇧": "Shinx",
+      "🇩🇪": "Sheinux",
+      "🇫🇷": "Lixy"
+    },
     "is_variant": false
   },
   {
@@ -5930,7 +6106,12 @@
   {
     "dex_number": 405,
     "name": "Luxray",
-    "other_names": {},
+    "other_names": {
+      "🇯🇵": "Rentorar",
+      "🇬🇧": "Luxray",
+      "🇩🇪": "Luxtra",
+      "🇫🇷": "Luxray"
+    },
     "is_variant": false
   },
   {
@@ -6077,7 +6258,12 @@
   {
     "dex_number": 415,
     "name": "Combee",
-    "other_names": {},
+    "other_names": {
+      "🇯🇵": "Mitsuhoney",
+      "🇬🇧": "Combee",
+      "🇩🇪": "Wadribie",
+      "🇫🇷": "Apitrini"
+    },
     "is_variant": false
   },
   {
@@ -6105,13 +6291,23 @@
   {
     "dex_number": 418,
     "name": "Buizel",
-    "other_names": {},
+    "other_names": {
+      "🇯🇵": "Buoysel",
+      "🇬🇧": "Buizel",
+      "🇩🇪": "Bamelin",
+      "🇫🇷": "Mustébouée"
+    },
     "is_variant": false
   },
   {
     "dex_number": 419,
     "name": "Floatzel",
-    "other_names": {},
+    "other_names": {
+      "🇯🇵": "Floazel",
+      "🇬🇧": "Floatzel",
+      "🇩🇪": "Bojelin",
+      "🇫🇷": "Mustéflott"
+    },
     "is_variant": false
   },
   {
@@ -6188,7 +6384,12 @@
   {
     "dex_number": 424,
     "name": "Ambipom",
-    "other_names": {},
+    "other_names": {
+      "🇯🇵": "Eteboth",
+      "🇬🇧": "Ambipom",
+      "🇩🇪": "Ambidiffel",
+      "🇫🇷": "Capidextre"
+    },
     "is_variant": false
   },
   {
@@ -6415,7 +6616,12 @@
   {
     "dex_number": 444,
     "name": "Gabite",
-    "other_names": {},
+    "other_names": {
+      "🇯🇵": "Gabite",
+      "🇬🇧": "Gabite",
+      "🇩🇪": "Knarksel",
+      "🇫🇷": "Carmache"
+    },
     "is_variant": false
   },
   {
@@ -6489,7 +6695,12 @@
   {
     "dex_number": 449,
     "name": "Hippopotas",
-    "other_names": {},
+    "other_names": {
+      "🇯🇵": "Hippopotas",
+      "🇬🇧": "Hippopotas",
+      "🇩🇪": "Hippopotas",
+      "🇫🇷": "Hippopotas"
+    },
     "is_variant": false
   },
   {
@@ -6528,7 +6739,12 @@
   {
     "dex_number": 453,
     "name": "Croagunk",
-    "other_names": {},
+    "other_names": {
+      "🇯🇵": "Gureggru",
+      "🇬🇧": "Croagunk",
+      "🇩🇪": "Glibunkel",
+      "🇫🇷": "Cradopaud"
+    },
     "is_variant": false
   },
   {
@@ -6556,7 +6772,12 @@
   {
     "dex_number": 456,
     "name": "Finneon",
-    "other_names": {},
+    "other_names": {
+      "🇯🇵": "Keikouo",
+      "🇬🇧": "Finneon",
+      "🇩🇪": "Finneon",
+      "🇫🇷": "Écayon"
+    },
     "is_variant": false
   },
   {
@@ -6584,7 +6805,12 @@
   {
     "dex_number": 459,
     "name": "Snover",
-    "other_names": {},
+    "other_names": {
+      "🇯🇵": "Yukikaburi",
+      "🇬🇧": "Snover",
+      "🇩🇪": "Shnebedeck",
+      "🇫🇷": "Blizzi"
+    },
     "is_variant": false
   },
   {
@@ -6613,7 +6839,12 @@
   {
     "dex_number": 461,
     "name": "Weavile",
-    "other_names": {},
+    "other_names": {
+      "🇯🇵": "Manyula",
+      "🇬🇧": "Weavile",
+      "🇩🇪": "Snibunna",
+      "🇫🇷": "Dimoret"
+    },
     "is_variant": false
   },
   {
@@ -6652,7 +6883,12 @@
   {
     "dex_number": 465,
     "name": "Tangrowth",
-    "other_names": {},
+    "other_names": {
+      "🇯🇵": "Mojumbo",
+      "🇬🇧": "Tangrowth",
+      "🇩🇪": "Tangoloss",
+      "🇫🇷": "Bouldeneu"
+    },
     "is_variant": false
   },
   {
@@ -7603,7 +7839,12 @@
   {
     "dex_number": 521,
     "name": "Unfezant",
-    "other_names": {},
+    "other_names": {
+      "🇯🇵": "Kenhallow",
+      "🇬🇧": "Unfezant",
+      "🇩🇪": "Fasasnob",
+      "🇫🇷": "Déflaisan"
+    },
     "is_variant": false
   },
   {
@@ -8549,7 +8790,12 @@
   {
     "dex_number": 592,
     "name": "Frillish",
-    "other_names": {},
+    "other_names": {
+      "🇯🇵": "Pururill",
+      "🇬🇧": "Frillish",
+      "🇩🇪": "Quabbel",
+      "🇫🇷": "Viskuse"
+    },
     "is_variant": false
   },
   {
@@ -9696,7 +9942,12 @@
   {
     "dex_number": 668,
     "name": "Pyroar",
-    "other_names": {},
+    "other_names": {
+      "🇯🇵": "Kaenjishi",
+      "🇬🇧": "Pyroar",
+      "🇩🇪": "Pyroleo",
+      "🇫🇷": "Némélios"
+    },
     "is_variant": false
   },
   {
@@ -10014,7 +10265,12 @@
   {
     "dex_number": 678,
     "name": "Meowstic",
-    "other_names": {},
+    "other_names": {
+      "🇯🇵": "Nyaonix",
+      "🇬🇧": "Meowstic",
+      "🇩🇪": "Psiaugon",
+      "🇫🇷": "Mistigrix"
+    },
     "is_variant": false
   },
   {
@@ -12154,7 +12410,7 @@
       "🇫🇷": "Meltan"
     },
     "is_variant": false,
-   � "rarity": "rare"
+    "rarity": "rare"
   },
   {
     "dex_number": 809,
@@ -12576,7 +12832,7 @@
     "name": "Applin",
     "other_names": {
       "🇯🇵": "Kajitchu",
-      "🇬🇧"�: "Applin",
+      "🇬🇧": "Applin",
       "🇩🇪": "Knapfel",
       "🇫🇷": "Verpom"
     },
@@ -12983,7 +13239,7 @@
   },
   {
     "dex_number": 867,
-    "name": "Runeri��gus",
+    "name": "Runeri�gus",
     "other_names": {
       "🇯🇵": "Desubān",
       "🇬🇧": "Runerigus",
@@ -13156,7 +13412,12 @@
   {
     "dex_number": 876,
     "name": "Indeedee",
-    "other_names": {},
+    "other_names": {
+      "🇯🇵": "Iessan",
+      "🇬🇧": "Indeedee",
+      "🇩🇪": "Servol",
+      "🇫🇷": "Wimessir"
+    },
     "is_variant": false
   },
   {
@@ -13388,7 +13649,7 @@
     "is_variant": false,
     "rarity": "rare"
   },
-  �{
+  {
     "dex_number": 892,
     "name": "Urshifu",
     "other_names": {
@@ -13752,7 +14013,12 @@
   {
     "dex_number": 916,
     "name": "Oinkologne",
-    "other_names": {},
+    "other_names": {
+      "🇯🇵": "Perfuton",
+      "🇬🇧": "Oinkologne",
+      "🇩🇪": "Fragrunz",
+      "🇫🇷": "Fragroin"
+    },
     "is_variant": false
   },
   {
@@ -13802,13 +14068,19 @@
   {
     "dex_number": 921,
     "name": "Pawmi",
-    "other_n�a�mes": {
+    "other_na�mes": {
       "🇯🇵": "Pamo",
       "🇬🇧": "Pawmi",
       "🇩🇪": "Pamo",
       "🇫🇷": "Pohm"
     },
-    "is_variant": false
+    "is_variant": false,
+    "other_names": {
+      "🇯🇵": "Pamo",
+      "🇬🇧": "Pawmi",
+      "🇩🇪": "Pamo",
+      "🇫🇷": "Pohm"
+    }
   },
   {
     "dex_number": 922,
@@ -14222,7 +14494,7 @@
       "🇩🇪": "Flattutu",
       "🇫🇷": "Flotillon"
     },
-    "is_var�ia�nt": false
+    "is_varia�nt": false
   },
   {
     "dex_number": 956,
@@ -14639,7 +14911,7 @@
     "name": "Slither Wing",
     "other_names": {
       "🇯🇵": "Chiohauhane",
-      "🇬🇧": "Slit�her� Wing",
+      "🇬🇧": "Slither� Wing",
       "🇩🇪": "Kriechflügel",
       "🇫🇷": "Rampe-Ailes"
     },
@@ -15047,7 +15319,7 @@
     "rarity": "rare"
   },
   {
-    "dex_num�ber": 1018,
+    "dex_number": 1018,
     "name": "Archaludon",
     "other_names": {
       "🇯🇵": "Briduras",
