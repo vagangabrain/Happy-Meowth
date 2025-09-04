@@ -115,10 +115,6 @@ async def on_message_edit(before, after):
     if before.content == after.content:
         return
 
-    print(f"Message edited in #{after.channel.name} by {after.author}")
-    print(f"Before: {before.content}")
-    print(f"After: {after.content}")
-
     # Process the edited message as if it were a new command
     # This allows commands to work in edited messages
     await bot.process_commands(after)
