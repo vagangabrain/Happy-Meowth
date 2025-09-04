@@ -2476,12 +2476,12 @@
   },
   {
     "dex_number": 150,
-    "name": "Mega Mewtwo X",
+    "name": "Mega Mewtwo Y",
     "other_names": {
-      "🇯🇵": "Megamyūtsūx",
-      "🇬🇧": "Mega Mewtwo X",
-      "🇩🇪": "Mega-Mewtu X",
-      "🇫🇷": "Méga-Mewtwo X"
+      "🇯🇵": "Megamyūtsūy",
+      "🇬🇧": "Mega Mewtwo Y",
+      "🇩🇪": "Mega-Mewtu Y",
+      "🇫🇷": "Méga-Mewtwo Y"
     },
     "is_variant": true,
     "variant_of": "Mewtwo",
@@ -5856,6 +5856,18 @@
   },
   {
     "dex_number": 386,
+    "name": "Deoxys",
+    "other_names": {
+      "🇯🇵": "Deokishisu",
+      "🇬🇧": "Deoxys",
+      "🇩🇪": "Deoxys",
+      "🇫🇷": "Deoxys"
+    },
+    "is_variant": false,
+    "rarity": "rare"
+  },
+  {
+    "dex_number": 386,
     "name": "Speed Deoxys",
     "other_names": {
       "🇯🇵": "Supīdoforumu",
@@ -5863,7 +5875,8 @@
       "🇩🇪": "Initiativeform",
       "🇫🇷": "Forme Vitesse"
     },
-    "is_variant": false,
+    "is_variant": true,
+    "variant_of": "Deoxys",
     "rarity": "rare"
   },
   {
@@ -5876,7 +5889,7 @@
       "🇫🇷": "Forme Attaque"
     },
     "is_variant": true,
-    "variant_of": "Speed Deoxys",
+    "variant_of": "Deoxys",
     "rarity": "rare"
   },
   {
@@ -5889,7 +5902,7 @@
       "🇫🇷": "Forme Défense"
     },
     "is_variant": true,
-    "variant_of": "Speed Deoxys",
+    "variant_of": "Deoxys",
     "rarity": "rare"
   },
   {
