@@ -4,6 +4,7 @@ import asyncio
 import json
 import re
 import math
+import time
 from motor.motor_asyncio import AsyncIOMotorClient
 from predict import Prediction
 
@@ -525,109 +526,8 @@ async def list_user_collection(user_id, guild_id, page=1):
         print(f"Database error in list_user_collection: {e}")
         return f"Database error: {str(e)[:100]}"
 
-class AFKView(discord.ui.View):
-    def __init__(self, user_id, guild_id, is_afk):
-        super().__init__(timeout=300)  # 5 minutes timeout
-        self.user_id = user_id
-        self.guild_id = guild_id
-        self.update_button(is_afk)
-
-    def update_button(self, is_afk):
-        # Clear existing buttons
-        self.clear_items()
-
-        if is_afk:
-            button = discord.ui.Button(
-                label="Collection",
-                style=discord.ButtonStyle.danger,
-                emoji="📦"
-            )
-        else:
-            button = discord.ui.Button(
-                label="Collection",
-                style=discord.ButtonStyle.success,
-                emoji="📦"
-            )
-
-        button.callback = self.toggle_afk
-        self.add_item(button)
-
-    async def toggle_afk(self, interaction: discord.Interaction):
-        if interaction.user.id != self.user_id:
-            await interaction.response.send_message("This button is not for you!", ephemeral=True)
-            return
-
-        message, is_afk = await toggle_user_afk(self.user_id, self.guild_id)
-        self.update_button(is_afk)
-
-        await interaction.response.edit_message(content=message, view=self)
-
-class CollectionPaginationView(discord.ui.View):
-    def __init__(self, user_id, guild_id, current_page, total_pages):
-        super().__init__(timeout=300)
-        self.user_id = user_id
-        self.guild_id = guild_id
-        self.current_page = current_page
-        self.total_pages = total_pages
-
-        # Update button states
-        self.previous_button.disabled = (current_page <= 1)
-        self.next_button.disabled = (current_page >= total_pages)
-
-    @discord.ui.button(label="◀ Previous", style=discord.ButtonStyle.primary)
-    async def previous_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        if interaction.user.id != self.user_id:
-            await interaction.response.send_message("This button is not for you!", ephemeral=True)
-            return
-
-        new_page = max(1, self.current_page - 1)
-        result = await list_user_collection(self.user_id, self.guild_id, new_page)
-
-        if isinstance(result, tuple):
-            content, page, total_pages = result
-            self.current_page = page
-            self.total_pages = total_pages
-
-            # Update button states
-            self.previous_button.disabled = (page <= 1)
-            self.next_button.disabled = (page >= total_pages)
-
-            await interaction.response.edit_message(content=content, view=self)
-        else:
-            await interaction.response.edit_message(content=result, view=None)
-
-    @discord.ui.button(label="Next ▶", style=discord.ButtonStyle.primary)
-    async def next_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        if interaction.user.id != self.user_id:
-            await interaction.response.send_message("This button is not for you!", ephemeral=True)
-            return
-
-        new_page = min(self.total_pages, self.current_page + 1)
-        result = await list_user_collection(self.user_id, self.guild_id, new_page)
-
-        if isinstance(result, tuple):
-            content, page, total_pages = result
-            self.current_page = page
-            self.total_pages = total_pages
-
-            # Update button states
-            self.previous_button.disabled = (page <= 1)
-            self.next_button.disabled = (page >= total_pages)
-
-            await interaction.response.edit_message(content=content, view=self)
-        else:
-            await interaction.response.edit_message(content=result, view=None)
-
-@bot.event
-async def on_ready():
-    print(f"Logged in as {bot.user}")
-    if predictor is None:
-        await initialize_predictor()
-    if db is None:
-        await initialize_database()
-
-@bot.event
-async def on_message(message):
+async def process_message_commands(message):
+    """Process all bot commands - used for both new messages and edits"""
     # Don't respond to the bot's own messages
     if message.author == bot.user:
         return
@@ -650,7 +550,7 @@ async def on_message(message):
         embed.add_field(
             name="🔧 Basic Commands",
             value=(
-                "`m!ping` - Test if the bot is working\n"
+                "`m!ping` - Check bot latency and response time\n"
                 "`m!help` - Show this help message"
             ),
             inline=False
@@ -703,7 +603,8 @@ async def on_message(message):
                 "• Collector pinging (mentions users who have that Pokemon)\n"
                 "• Rare/Regional Pokemon role pinging\n"
                 "• Gender variant support\n"
-                "• Multi-language Pokemon name support"
+                "• Multi-language Pokemon name support\n"
+                "• Commands work with message edits!"
             ),
             inline=False
         )
@@ -713,9 +614,34 @@ async def on_message(message):
         await message.channel.send(embed=embed)
         return
 
-    # Test command
+    # Ping command - show actual latency
     if message.content.lower() == "m!ping":
-        await message.channel.send("Pong!")
+        start_time = time.time()
+
+        # Send initial message
+        sent_message = await message.channel.send("🏓 Pinging...")
+
+        # Calculate latency
+        end_time = time.time()
+        message_latency = round((end_time - start_time) * 1000, 2)  # Convert to milliseconds
+        websocket_latency = round(bot.latency * 1000, 2)  # Bot's websocket latency in ms
+
+        # Edit message with actual ping info
+        embed = discord.Embed(title="🏓 Pong!", color=0x00ff00)
+        embed.add_field(name="Message Latency", value=f"{message_latency}ms", inline=True)
+        embed.add_field(name="WebSocket Latency", value=f"{websocket_latency}ms", inline=True)
+
+        # Add status indicator based on latency
+        if websocket_latency < 100:
+            embed.add_field(name="Status", value="🟢 Excellent", inline=True)
+        elif websocket_latency < 200:
+            embed.add_field(name="Status", value="🟡 Good", inline=True)
+        elif websocket_latency < 500:
+            embed.add_field(name="Status", value="🟠 Fair", inline=True)
+        else:
+            embed.add_field(name="Status", value="🔴 Poor", inline=True)
+
+        await sent_message.edit(content="", embed=embed)
         return
 
     # AFK command with toggle button
@@ -919,7 +845,7 @@ async def on_message(message):
             await message.reply(f"Error: {str(e)[:100]}")
         return
 
-    # Auto-detect Poketwo spawns
+    # Auto-detect Poketwo spawns (only for new messages, not edits)
     if message.author.id == 716390085896962058:  # Poketwo user ID
         # Check if message has embeds with the specific titles
         if message.embeds:
@@ -963,6 +889,119 @@ async def on_message(message):
                                     print(f"Could not parse confidence value: {confidence}")
                         except Exception as e:
                             print(f"Auto-detection error: {e}")
+
+class AFKView(discord.ui.View):
+    def __init__(self, user_id, guild_id, is_afk):
+        super().__init__(timeout=300)  # 5 minutes timeout
+        self.user_id = user_id
+        self.guild_id = guild_id
+        self.update_button(is_afk)
+
+    def update_button(self, is_afk):
+        # Clear existing buttons
+        self.clear_items()
+
+        if is_afk:
+            button = discord.ui.Button(
+                label="Collection",
+                style=discord.ButtonStyle.danger,
+                emoji="📦"
+            )
+        else:
+            button = discord.ui.Button(
+                label="Collection",
+                style=discord.ButtonStyle.success,
+                emoji="📦"
+            )
+
+        button.callback = self.toggle_afk
+        self.add_item(button)
+
+    async def toggle_afk(self, interaction: discord.Interaction):
+        if interaction.user.id != self.user_id:
+            await interaction.response.send_message("This button is not for you!", ephemeral=True)
+            return
+
+        message, is_afk = await toggle_user_afk(self.user_id, self.guild_id)
+        self.update_button(is_afk)
+
+        await interaction.response.edit_message(content=message, view=self)
+
+class CollectionPaginationView(discord.ui.View):
+    def __init__(self, user_id, guild_id, current_page, total_pages):
+        super().__init__(timeout=300)
+        self.user_id = user_id
+        self.guild_id = guild_id
+        self.current_page = current_page
+        self.total_pages = total_pages
+
+        # Update button states
+        self.previous_button.disabled = (current_page <= 1)
+        self.next_button.disabled = (current_page >= total_pages)
+
+    @discord.ui.button(label="◀ Previous", style=discord.ButtonStyle.primary)
+    async def previous_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.user_id:
+            await interaction.response.send_message("This button is not for you!", ephemeral=True)
+            return
+
+        new_page = max(1, self.current_page - 1)
+        result = await list_user_collection(self.user_id, self.guild_id, new_page)
+
+        if isinstance(result, tuple):
+            content, page, total_pages = result
+            self.current_page = page
+            self.total_pages = total_pages
+
+            # Update button states
+            self.previous_button.disabled = (page <= 1)
+            self.next_button.disabled = (page >= total_pages)
+
+            await interaction.response.edit_message(content=content, view=self)
+        else:
+            await interaction.response.edit_message(content=result, view=None)
+
+    @discord.ui.button(label="Next ▶", style=discord.ButtonStyle.primary)
+    async def next_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.user_id:
+            await interaction.response.send_message("This button is not for you!", ephemeral=True)
+            return
+
+        new_page = min(self.total_pages, self.current_page + 1)
+        result = await list_user_collection(self.user_id, self.guild_id, new_page)
+
+        if isinstance(result, tuple):
+            content, page, total_pages = result
+            self.current_page = page
+            self.total_pages = total_pages
+
+            # Update button states
+            self.previous_button.disabled = (page <= 1)
+            self.next_button.disabled = (page >= total_pages)
+
+            await interaction.response.edit_message(content=content, view=self)
+        else:
+            await interaction.response.edit_message(content=result, view=None)
+
+@bot.event
+async def on_ready():
+    print(f"Logged in as {bot.user}")
+    if predictor is None:
+        await initialize_predictor()
+    if db is None:
+        await initialize_database()
+
+@bot.event
+async def on_message(message):
+    await process_message_commands(message)
+
+@bot.event
+async def on_message_edit(before, after):
+    """Handle message edits - process commands on edited messages too"""
+    # Only process if the message content actually changed
+    if before.content != after.content:
+        print(f"Message edited by {after.author}: '{before.content}' -> '{after.content}'")
+        await process_message_commands(after)
 
 async def get_image_url_from_message(message):
     """Extract image URL from message attachments or embeds"""
