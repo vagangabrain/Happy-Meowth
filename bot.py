@@ -72,7 +72,6 @@ async def initialize_database():
                 db = db_client.pokemon_collector
                 print(f"✅ Database initialized successfully with configuration {i}")
                 return
-
             except asyncio.TimeoutError:
                 print(f"❌ Config {i} failed: Connection timeout")
             except Exception as e:
@@ -93,8 +92,10 @@ async def initialize_database():
 @bot.event
 async def on_ready():
     print(f"Logged in as {bot.user}")
+
     if predictor is None:
         await initialize_predictor()
+
     if db is None:
         await initialize_database()
 
@@ -102,6 +103,25 @@ async def on_ready():
     await bot.load_extension('cogs.general')
     await bot.load_extension('cogs.collection')
     print("All cogs loaded successfully")
+
+@bot.event
+async def on_message_edit(before, after):
+    """Event handler for when a message is edited"""
+    # Ignore bot messages
+    if after.author.bot:
+        return
+
+    # Ignore if message content hasn't changed (e.g., just an embed update)
+    if before.content == after.content:
+        return
+
+    print(f"Message edited in #{after.channel.name} by {after.author}")
+    print(f"Before: {before.content}")
+    print(f"After: {after.content}")
+
+    # Process the edited message as if it were a new command
+    # This allows commands to work in edited messages
+    await bot.process_commands(after)
 
 def main():
     if not TOKEN:
