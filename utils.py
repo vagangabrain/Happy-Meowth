@@ -35,15 +35,20 @@ def normalize_pokemon_name(name):
 
 def find_pokemon_by_name(name, pokemon_data):
     """Find Pokemon by name (including other language names) - updated for new JSON structure"""
+    if not name or not pokemon_data:
+        return None
+        
     name_lower = name.lower().strip()
+    
     for pokemon in pokemon_data:
         # Check main name
         if pokemon.get('name', '').lower() == name_lower:
             return pokemon
+            
         # Check other language names (handles both strings and arrays)
         other_names = pokemon.get('other_names')
         if other_names and isinstance(other_names, dict):
-            for lang_name_data in other_names.values():
+            for lang_key, lang_name_data in other_names.items():
                 # Handle both string and array formats
                 if isinstance(lang_name_data, str):
                     if lang_name_data.lower() == name_lower:
