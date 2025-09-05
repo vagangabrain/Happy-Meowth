@@ -5,7 +5,8 @@ from utils import (
     load_pokemon_data, 
     find_pokemon_by_name, 
     find_pokemon_by_name_flexible,
-    normalize_pokemon_name
+    normalize_pokemon_name,
+    is_rare_pokemon
 )
 
 class CollectionPaginationView(discord.ui.View):
@@ -168,6 +169,50 @@ class Collection(commands.Cog):
 
         return collectors
 
+    async def get_rare_collectors(self, guild_id):
+        """Get all users who want rare pings (Legendary, Mythical, Ultra Beast) in the given guild (excluding AFK users)"""
+        if self.db is None:
+            return []
+
+        try:
+            # Get AFK users for this guild
+            afk_users = await self.get_afk_users(guild_id)
+
+            # Find all users with rare ping enabled in this guild
+            rare_ping_users = await self.db.rare_pings.find({"guild_id": guild_id, "enabled": True}).to_list(length=None)
+
+            collectors = []
+            for rare_ping_doc in rare_ping_users:
+                user_id = rare_ping_doc['user_id']
+                # Skip AFK users
+                if user_id not in afk_users:
+                    collectors.append(user_id)
+
+        except Exception as e:
+            print(f"Error getting rare collectors: {e}")
+
+        return collectors
+
+    async def get_collectors_for_spawn(self, pokemon_name, guild_id):
+        """Get all users to ping for a Pokemon spawn (both collectors and rare ping users if applicable)"""
+        collectors = []
+
+        # Get regular collectors
+        regular_collectors = await self.get_collectors_for_pokemon(pokemon_name, guild_id)
+        collectors.extend(regular_collectors)
+
+        # Check if this is a rare Pokemon and get rare collectors
+        pokemon_data = load_pokemon_data()
+        pokemon = find_pokemon_by_name(pokemon_name, pokemon_data)
+        if pokemon and is_rare_pokemon(pokemon):
+            rare_collectors = await self.get_rare_collectors(guild_id)
+            # Add rare collectors who aren't already in the list
+            for rare_collector in rare_collectors:
+                if rare_collector not in collectors:
+                    collectors.append(rare_collector)
+
+        return collectors
+
     async def toggle_user_afk(self, user_id, guild_id):
         """Toggle user's AFK status for a guild"""
         if self.db is None:
@@ -193,6 +238,34 @@ class Collection(commands.Cog):
             print(f"Error toggling AFK status: {e}")
             return f"Database error: {str(e)[:100]}", False
 
+    async def toggle_rare_ping(self, user_id, guild_id):
+        """Toggle user's rare ping status for a guild"""
+        if self.db is None:
+            return "Database not available", False
+
+        try:
+            # Check current status
+            current_rare = await self.db.rare_pings.find_one({"user_id": user_id, "guild_id": guild_id})
+
+            if current_rare and current_rare.get('enabled', False):
+                # User currently has rare pings enabled, disable them
+                await self.db.rare_pings.update_one(
+                    {"user_id": user_id, "guild_id": guild_id},
+                    {"$set": {"enabled": False}}
+                )
+                return "Rare pings disabled. You won't be pinged for Legendary, Mythical, or Ultra Beast Pokemon.", False
+            else:
+                # User doesn't have rare pings enabled, enable them
+                await self.db.rare_pings.update_one(
+                    {"user_id": user_id, "guild_id": guild_id},
+                    {"$set": {"user_id": user_id, "guild_id": guild_id, "enabled": True}},
+                    upsert=True
+                )
+                return "Rare pings enabled. You will be pinged for Legendary, Mythical, and Ultra Beast Pokemon.", True
+        except Exception as e:
+            print(f"Error toggling rare ping status: {e}")
+            return f"Database error: {str(e)[:100]}", False
+
     async def get_afk_users(self, guild_id):
         """Get list of AFK user IDs for a guild"""
         if self.db is None:
@@ -215,6 +288,18 @@ class Collection(commands.Cog):
             return afk_doc and afk_doc.get('afk', False)
         except Exception as e:
             print(f"Error checking AFK status: {e}")
+            return False
+
+    async def is_rare_ping_enabled(self, user_id, guild_id):
+        """Check if a user has rare pings enabled"""
+        if self.db is None:
+            return False
+
+        try:
+            rare_doc = await self.db.rare_pings.find_one({"user_id": user_id, "guild_id": guild_id})
+            return rare_doc and rare_doc.get('enabled', False)
+        except Exception as e:
+            print(f"Error checking rare ping status: {e}")
             return False
 
     async def add_pokemon_to_collection(self, user_id, guild_id, pokemon_names):
@@ -410,6 +495,12 @@ class Collection(commands.Cog):
 
         view = AFKView(ctx.author.id, ctx.guild.id, current_afk, self)
         await ctx.reply(initial_message, view=view)
+
+    @commands.command(name="rareping")
+    async def rare_ping_command(self, ctx):
+        """Toggle rare ping status for Legendary, Mythical, and Ultra Beast Pokemon"""
+        message, enabled = await self.toggle_rare_ping(ctx.author.id, ctx.guild.id)
+        await ctx.reply(message)
 
     @commands.group(name="cl", invoke_without_command=True)
     async def collection_group(self, ctx):
