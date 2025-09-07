@@ -173,8 +173,8 @@ class Starboard(commands.Cog):
 
     def parse_poketwo_catch_message(self, message_content):
         """Parse Poketwo catch message to extract relevant information"""
-        # Pattern to match the congratulations message with gender emojis
-        catch_pattern = r"Congratulations <@!?(\d+)>! You caught a Level (\d+) (.+?)(?:<:[^:]+:\d+>)? \((\d+\.?\d*)%\)!"
+        # Pattern to match the congratulations message with optional IV and gender emojis
+        catch_pattern = r"Congratulations <@!?(\d+)>! You caught a Level (\d+) (.+?)(?:<:[^:]+:\d+>)?(?:\s+\((\d+\.?\d*)%\))?!"
 
         match = re.search(catch_pattern, message_content)
         if not match:
@@ -183,7 +183,13 @@ class Starboard(commands.Cog):
         user_id = match.group(1)
         level = match.group(2)
         pokemon_name_with_gender = match.group(3).strip()
-        iv = match.group(4)
+        iv_str = match.group(4)  # This could be None if IV is hidden
+
+        # Handle IV - if not present, it's hidden
+        if iv_str:
+            iv = float(iv_str)
+        else:
+            iv = "Hidden"
 
         # Extract gender from emoji
         gender = None
@@ -197,6 +203,10 @@ class Starboard(commands.Cog):
         elif "<:female:" in pokemon_name_with_gender:
             gender = 'female'
             pokemon_name = re.sub(r'<:female:\d+>', '', pokemon_name_with_gender).strip()
+        # Check for unknown gender emoji
+        elif "<:unknown:" in pokemon_name_with_gender:
+            gender = 'unknown'
+            pokemon_name = re.sub(r'<:unknown:\d+>', '', pokemon_name_with_gender).strip()
 
         # Check for shiny
         is_shiny = "These colors seem unusual... ✨" in message_content
@@ -215,46 +225,91 @@ class Starboard(commands.Cog):
             'user_id': user_id,
             'level': level,
             'pokemon_name': pokemon_name,
-            'iv': float(iv),
+            'iv': iv,
             'is_shiny': is_shiny,
             'is_gigantamax': is_gigantamax,
             'shiny_chain': shiny_chain,
-            'gender': gender
+            'gender': gender,
+            'message_type': 'catch'
+        }
+
+    def parse_poketwo_missingno_message(self, message_content):
+        """Parse Poketwo MissingNo. catch message"""
+        # Pattern for MissingNo. with IV
+        missingno_pattern1 = r"Congratulations <@!?(\d+)>! You caught a Level \?\?\? MissingNo\.(?:<:[^:]+:\d+>)? \(\?\?\?%\)!"
+        # Pattern for MissingNo. without IV
+        missingno_pattern2 = r"Congratulations <@!?(\d+)>! You caught a Level \?\?\? MissingNo\.(?:<:[^:]+:\d+>)!"
+
+        match = re.search(missingno_pattern1, message_content) or re.search(missingno_pattern2, message_content)
+        if not match:
+            return None
+
+        user_id = match.group(1)
+
+        return {
+            'user_id': user_id,
+            'level': '???',
+            'pokemon_name': 'MissingNo.',
+            'iv': '???',
+            'is_shiny': False,
+            'is_gigantamax': False,
+            'gender': None,
+            'message_type': 'missingno'
         }
 
     def create_catch_embed(self, catch_data, embed_type, message=None):
-        """Create embed for different types of catches"""
-        user_id = catch_data['user_id']
+        """Create embed for catch messages"""
+        message_type = catch_data.get('message_type', 'catch')
         pokemon_name = catch_data['pokemon_name']
         level = catch_data['level']
         iv = catch_data['iv']
         is_shiny = catch_data['is_shiny']
         is_gigantamax = catch_data['is_gigantamax']
-        shiny_chain = catch_data['shiny_chain']
         gender = catch_data.get('gender')
+
+        # Format IV display
+        if iv == "Hidden":
+            iv_display = "Hidden"
+        elif iv == "???":
+            iv_display = "???"
+        else:
+            iv_display = f"{iv}%"
 
         # Get Pokemon image URL with gender and Gigantamax support
         image_url = self.find_pokemon_image_url(pokemon_name, is_shiny, gender, is_gigantamax)
 
         embed = discord.Embed(color=0xf4e5ba, timestamp=datetime.utcnow())
 
-        if embed_type == 'gigantamax':
-            embed.title = "<:gigantamax:1413843021241384960> Gigantamax Catch Detected <:gigantamax:1413843021241384960>"
-            embed.description = f"**Caught By:** <@{user_id}>\n**Pokémon:** Gigantamax {pokemon_name}\n**Level:** {level}\n**IV:** {iv}%"
+        if message_type == 'catch':
+            user_id = catch_data['user_id']
+            shiny_chain = catch_data.get('shiny_chain')
 
-        elif embed_type == 'shiny':
-            embed.title = "✨ Shiny Catch Detected ✨"
-            embed.description = f"**Caught By:** <@{user_id}>\n**Pokémon:** {pokemon_name}\n**Level:** {level}\n**IV:** {iv}%"
-            if shiny_chain:
-                embed.description += f"\n**Chain:** {shiny_chain}"
+            if embed_type == 'gigantamax':
+                embed.title = "<:gigantamax:1413843021241384960> Gigantamax Catch Detected <:gigantamax:1413843021241384960>"
+                embed.description = f"**Caught By:** <@{user_id}>\n**Pokémon:** Gigantamax {pokemon_name}\n**Level:** {level}\n**IV:** {iv_display}"
 
-        elif embed_type == 'iv_high':
-            embed.title = "📈 Rare IV Catch Detected 📈"
-            embed.description = f"**Caught By:** <@{user_id}>\n**Pokémon:** {pokemon_name}\n**Level:** {level}\n**IV:** {iv}%"
+            elif embed_type == 'shiny':
+                embed.title = "✨ Shiny Catch Detected ✨"
+                embed.description = f"**Caught By:** <@{user_id}>\n**Pokémon:** {pokemon_name}\n**Level:** {level}\n**IV:** {iv_display}"
+                if shiny_chain:
+                    embed.description += f"\n**Chain:** {shiny_chain}"
 
-        elif embed_type == 'iv_low':
-            embed.title = "📉 Rare IV Catch Detected 📉"
-            embed.description = f"**Caught By:** <@{user_id}>\n**Pokémon:** {pokemon_name}\n**Level:** {level}\n**IV:** {iv}%"
+            elif embed_type == 'iv_high':
+                embed.title = "📈 Rare IV Catch Detected 📈"
+                embed.description = f"**Caught By:** <@{user_id}>\n**Pokémon:** {pokemon_name}\n**Level:** {level}\n**IV:** {iv_display}"
+
+            elif embed_type == 'iv_low':
+                embed.title = "📉 Rare IV Catch Detected 📉"
+                embed.description = f"**Caught By:** <@{user_id}>\n**Pokémon:** {pokemon_name}\n**Level:** {level}\n**IV:** {iv_display}"
+
+        elif message_type == 'missingno':
+            user_id = catch_data['user_id']
+            embed.title = "❓ Missingno. Detected ❓"
+            embed.description = f"**Caught By:** <@{user_id}>\n**Pokémon:** MissingNo.\n**Level:** ???\n**IV:** {iv_display}"
+
+        # Handle Gigantamax Shiny combination
+        if is_gigantamax and is_shiny and message_type == 'catch':
+            embed.title = "<:gigantamax:1413843021241384960> ✨ Gigantamax Shiny Catch Detected ✨ <:gigantamax:1413843021241384960>"
 
         if image_url:
             embed.set_thumbnail(url=image_url)
@@ -277,6 +332,7 @@ class Starboard(commands.Cog):
         is_shiny = catch_data['is_shiny']
         is_gigantamax = catch_data['is_gigantamax']
         iv = catch_data['iv']
+        message_type = catch_data.get('message_type', 'catch')
 
         # Get server starboard channel
         server_starboard_id = await self.get_starboard_channel(guild.id)
@@ -292,28 +348,33 @@ class Starboard(commands.Cog):
 
         embeds_to_send = []
 
-        # Determine what type of catch this is
-        if is_gigantamax and is_shiny:
-            # Gigantamax Shiny (very rare)
-            embed, view = self.create_catch_embed(catch_data, 'gigantamax', original_message)
-            embed.title = "<:gigantamax:1413843021241384960> ✨ Gigantamax Shiny Catch Detected ✨ <:gigantamax:1413843021241384960>"
+        # Handle MissingNo. - always send regardless of other criteria
+        if message_type == 'missingno':
+            embed, view = self.create_catch_embed(catch_data, 'missingno', original_message)
             embeds_to_send.append((embed, view))
-        elif is_gigantamax:
-            # Gigantamax only
-            embed, view = self.create_catch_embed(catch_data, 'gigantamax', original_message)
-            embeds_to_send.append((embed, view))
-        elif is_shiny:
-            # Shiny only
-            embed, view = self.create_catch_embed(catch_data, 'shiny', original_message)
-            embeds_to_send.append((embed, view))
+        else:
+            # Determine what type of catch this is
+            if is_gigantamax and is_shiny:
+                # Gigantamax Shiny (very rare)
+                embed, view = self.create_catch_embed(catch_data, 'gigantamax', original_message)
+                embeds_to_send.append((embed, view))
+            elif is_gigantamax:
+                # Gigantamax only
+                embed, view = self.create_catch_embed(catch_data, 'gigantamax', original_message)
+                embeds_to_send.append((embed, view))
+            elif is_shiny:
+                # Shiny only
+                embed, view = self.create_catch_embed(catch_data, 'shiny', original_message)
+                embeds_to_send.append((embed, view))
 
-        # Check for rare IV (>90 or <10)
-        if iv >= 90:
-            embed, view = self.create_catch_embed(catch_data, 'iv_high', original_message)
-            embeds_to_send.append((embed, view))
-        elif iv <= 10:
-            embed, view = self.create_catch_embed(catch_data, 'iv_low', original_message)
-            embeds_to_send.append((embed, view))
+            # Check for rare IV (>90 or <10) - only if IV is a number
+            if isinstance(iv, (int, float)):
+                if iv >= 90:
+                    embed, view = self.create_catch_embed(catch_data, 'iv_high', original_message)
+                    embeds_to_send.append((embed, view))
+                elif iv <= 10:
+                    embed, view = self.create_catch_embed(catch_data, 'iv_low', original_message)
+                    embeds_to_send.append((embed, view))
 
         # Send to server starboard if configured and there are embeds to send
         if server_starboard_channel and embeds_to_send:
@@ -433,45 +494,128 @@ class Starboard(commands.Cog):
 
     @commands.command(name="manualcheck")
     @commands.has_permissions(administrator=True)
-    async def manual_check_command(self, ctx, *, catch_message=None):
-        """Manually check a Poketwo catch message and send to starboard if it meets criteria"""
+    async def manual_check_command(self, ctx, *, input_data=None):
+        """Manually check a Poketwo catch message and send to starboard if it meets criteria
 
-        # If no message provided, check if replying to a message
+        Usage:
+        - Reply to a message: m!manualcheck
+        - Provide message ID: m!manualcheck 123456789012345678
+        - Provide message text: m!manualcheck Congratulations <@123>! You caught...
+        """
+
         original_message = None
-        if catch_message is None:
+        catch_message = None
+
+        if input_data is None:
+            # User must be replying to a message
             if ctx.message.reference and ctx.message.reference.resolved:
                 catch_message = ctx.message.reference.resolved.content
                 original_message = ctx.message.reference.resolved
             else:
-                await ctx.reply("Please provide a Poketwo catch message or reply to one.\n"
-                               "Example: `m!manualcheck Congratulations <@123456789>! You caught a Level 50 Pikachu (95.5%)!`")
+                await ctx.reply("Please provide a Poketwo catch message, message ID, or reply to one.\n"
+                               "Examples:\n"
+                               "`m!manualcheck 123456789012345678` (message ID)\n"
+                               "`m!manualcheck Congratulations <@123456789>! You caught a Level 50 Pikachu (95.5%)!`\n"
+                               "Or reply to a message with just `m!manualcheck`")
                 return
+        else:
+            # Check if input_data is a message ID (numeric)
+            if input_data.strip().isdigit():
+                message_id = int(input_data.strip())
+                try:
+                    # Try to fetch the message from the current channel first
+                    try:
+                        original_message = await ctx.channel.fetch_message(message_id)
+                    except discord.NotFound:
+                        # If not found in current channel, search in all channels in the guild
+                        found_message = None
+                        for channel in ctx.guild.text_channels:
+                            if channel.permissions_for(ctx.guild.me).read_message_history:
+                                try:
+                                    found_message = await channel.fetch_message(message_id)
+                                    original_message = found_message
+                                    break
+                                except (discord.NotFound, discord.Forbidden):
+                                    continue
 
-        # Parse the catch message
-        catch_data = self.parse_poketwo_catch_message(catch_message)
+                        if not found_message:
+                            await ctx.reply(f"❌ Could not find message with ID `{message_id}` in this server.")
+                            return
+
+                    catch_message = original_message.content
+
+                    # Check if the message is from Poketwo
+                    if original_message.author.id != 716390085896962058:
+                        await ctx.reply(f"❌ The message with ID `{message_id}` is not from Poketwo.")
+                        return
+
+                except ValueError:
+                    await ctx.reply(f"❌ Invalid message ID: `{input_data.strip()}`")
+                    return
+                except discord.Forbidden:
+                    await ctx.reply(f"❌ I don't have permission to access the message with ID `{message_id}`.")
+                    return
+                except Exception as e:
+                    await ctx.reply(f"❌ Error fetching message: {str(e)}")
+                    return
+            else:
+                # Treat as message content
+                catch_message = input_data
+
+        # Try to parse as different message types
+        catch_data = None
+        message_type = None
+
+        # Try MissingNo. first (most specific)
+        catch_data = self.parse_poketwo_missingno_message(catch_message)
+        if catch_data:
+            message_type = "MissingNo. catch"
+        else:
+            # Try catch message
+            catch_data = self.parse_poketwo_catch_message(catch_message)
+            if catch_data:
+                message_type = "catch"
+
         if not catch_data:
-            await ctx.reply("❌ Invalid catch message format. Please make sure it's a proper Poketwo catch message.")
+            await ctx.reply("❌ Invalid message format. Please make sure it's a proper Poketwo catch or MissingNo. message.")
             return
 
-        # Check if this catch meets starboard criteria
+        # Check if this meets starboard criteria
         is_shiny = catch_data['is_shiny']
         is_gigantamax = catch_data['is_gigantamax']
         iv = catch_data['iv']
+        pokemon_name = catch_data['pokemon_name']
+        level = catch_data['level']
 
         criteria_met = []
-        if is_shiny:
-            criteria_met.append("✨ Shiny")
-        if is_gigantamax:
-            criteria_met.append("<:gigantamax:1413843021241384960> Gigantamax")
-        if iv >= 90:
-            criteria_met.append(f"📈 High IV ({iv}%)")
-        if iv <= 10:
-            criteria_met.append(f"📉 Low IV ({iv}%)")
+
+        # MissingNo. always meets criteria
+        if catch_data.get('message_type') == 'missingno':
+            criteria_met.append("❓ MissingNo.")
+        else:
+            if is_shiny:
+                criteria_met.append("✨ Shiny")
+            if is_gigantamax:
+                criteria_met.append("<:gigantamax:1413843021241384960> Gigantamax")
+            if isinstance(iv, (int, float)):
+                if iv >= 90:
+                    criteria_met.append(f"📈 High IV ({iv}%)")
+                elif iv <= 10:
+                    criteria_met.append(f"📉 Low IV ({iv}%)")
 
         if not criteria_met:
-            await ctx.reply(f"❌ This catch doesn't meet starboard criteria.\n"
-                           f"**Pokémon:** {catch_data['pokemon_name']}\n"
-                           f"**IV:** {iv}% (need ≥90% or ≤10%)\n"
+            # Format IV display for error message
+            if iv == "Hidden":
+                iv_display = "Hidden"
+            elif iv == "???":
+                iv_display = "???"
+            else:
+                iv_display = f"{iv}%"
+
+            await ctx.reply(f"❌ This {message_type} doesn't meet starboard criteria.\n"
+                           f"**Pokémon:** {pokemon_name}\n"
+                           f"**Level:** {level}\n"
+                           f"**IV:** {iv_display} (need ≥90% or ≤10% for IV criteria)\n"
                            f"**Shiny:** {'Yes' if is_shiny else 'No'}\n"
                            f"**Gigantamax:** {'Yes' if is_gigantamax else 'No'}")
             return
@@ -480,14 +624,31 @@ class Starboard(commands.Cog):
         await self.send_to_starboard_channels(ctx.guild, catch_data, original_message)
 
         criteria_text = ", ".join(criteria_met)
-        await ctx.reply(f"✅ Catch sent to starboard!\n"
+        # Format IV for success message
+        if iv == "Hidden":
+            iv_display = "Hidden"
+        elif iv == "???":
+            iv_display = "???"
+        else:
+            iv_display = f"{iv}%"
+
+        # Add message source info
+        debug_info = ""
+        if original_message:
+            debug_info = f"\n**Message:** [Jump to original]({original_message.jump_url})"
+
+        await ctx.reply(f"✅ {message_type.capitalize()} sent to starboard!\n"
                        f"**Criteria met:** {criteria_text}\n"
-                       f"**Pokémon:** {catch_data['pokemon_name']} (Level {catch_data['level']}, {iv}%)")
+                       f"**Pokémon:** {pokemon_name} (Level {level}, {iv_display}){debug_info}")
 
     @manual_check_command.error
     async def manual_check_error(self, ctx, error):
         if isinstance(error, commands.MissingPermissions):
             await ctx.reply("You need administrator permissions to use this command.")
+        else:
+            # Log unexpected errors
+            print(f"Unexpected error in manualcheck: {error}")
+            await ctx.reply("❌ An unexpected error occurred. Please try again.")
 
     @commands.Cog.listener()
     async def on_message(self, message):
@@ -496,12 +657,16 @@ class Starboard(commands.Cog):
         if message.author.id != 716390085896962058:
             return
 
-        # Check if it's a catch message
-        if not message.content.startswith("Congratulations"):
-            return
+        catch_data = None
 
-        # Parse the catch message
-        catch_data = self.parse_poketwo_catch_message(message.content)
+        # Check for MissingNo. catch (most specific first)
+        if "MissingNo." in message.content:
+            catch_data = self.parse_poketwo_missingno_message(message.content)
+
+        # Check if it's a catch message
+        elif message.content.startswith("Congratulations"):
+            catch_data = self.parse_poketwo_catch_message(message.content)
+
         if not catch_data:
             return
 
@@ -509,9 +674,13 @@ class Starboard(commands.Cog):
         is_shiny = catch_data['is_shiny']
         is_gigantamax = catch_data['is_gigantamax']
         iv = catch_data['iv']
+        message_type = catch_data.get('message_type', 'catch')
 
-        # Only send to starboard if it's shiny, gigantamax, or rare IV
-        if is_shiny or is_gigantamax or iv >= 90 or iv <= 10:
+        # MissingNo. always goes to starboard
+        if message_type == 'missingno':
+            await self.send_to_starboard_channels(message.guild, catch_data, message)
+        # For catches, check criteria
+        elif is_shiny or is_gigantamax or (isinstance(iv, (int, float)) and (iv >= 90 or iv <= 10)):
             await self.send_to_starboard_channels(message.guild, catch_data, message)
 
 async def setup(bot):
