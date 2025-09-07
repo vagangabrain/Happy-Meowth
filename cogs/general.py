@@ -93,43 +93,112 @@ class AFKView(discord.ui.View):
         await interaction.response.edit_message(content=message, view=self)
 
 
+class HelpDropdownSelect(discord.ui.Select):
+    def __init__(self, embeds):
+        self.embeds = embeds
+
+        # Define dropdown options
+        options = [
+            discord.SelectOption(
+                label=" Overview & Basic Commands",
+                description="Basic commands, ping, and Pokemon prediction",
+                emoji="🏠",
+                value="overview"
+            ),
+            discord.SelectOption(
+                label=" Collection Management",
+                description="Manage your Pokemon collection and get notified",
+                emoji="📚",
+                value="collection"
+            ),
+            discord.SelectOption(
+                label=" Shiny Hunt System", 
+                description="Hunt for specific shiny Pokemon",
+                emoji="✨",
+                value="shiny"
+            ),
+            discord.SelectOption(
+                label=" AFK & Notifications",
+                description="Control when you receive pings",
+                emoji="😴", 
+                value="afk"
+            ),
+            discord.SelectOption(
+                label=" Starboard System",
+                description="Showcase rare catches automatically",
+                emoji="⭐",
+                value="starboard"
+            ),
+            discord.SelectOption(
+                label=" Admin Commands",
+                description="Server management for administrators",
+                emoji="👑",
+                value="admin"
+            ),
+            discord.SelectOption(
+                label=" Features Overview",
+                description="All bot features and capabilities",
+                emoji="🎯",
+                value="features"
+            )
+        ]
+
+        super().__init__(
+            placeholder="📋 Choose a help category...",
+            min_values=1,
+            max_values=1,
+            options=options
+        )
+
+    async def callback(self, interaction: discord.Interaction):
+        # Map selection values to embed indices
+        embed_map = {
+            "overview": 0,
+            "collection": 1, 
+            "shiny": 2,
+            "afk": 3,
+            "starboard": 4,
+            "admin": 5,
+            "features": 6
+        }
+
+        selected_page = embed_map.get(self.values[0], 0)
+        embed = self.embeds[selected_page]
+
+        # Update footer with current selection
+        category_names = {
+            "overview": "Overview & Basic Commands",
+            "collection": "Collection Management", 
+            "shiny": "Shiny Hunt System",
+            "afk": "AFK & Notifications",
+            "starboard": "Starboard System",
+            "admin": "Admin Commands", 
+            "features": "Features Overview"
+        }
+
+        category_name = category_names.get(self.values[0], "Overview")
+        embed.set_footer(text=f"Showing: {category_name} | Bot created for Pokemon collection management")
+
+        await interaction.response.edit_message(embed=embed, view=self.view)
+
+
 class HelpView(discord.ui.View):
     def __init__(self, embeds):
         super().__init__(timeout=300)  # 5 minutes timeout
         self.embeds = embeds
-        self.current_page = 0
-        self.max_pages = len(embeds)
-        self.update_buttons()
 
-    def update_buttons(self):
-        # Update button states based on current page
-        self.previous_button.disabled = (self.current_page == 0)
-        self.next_button.disabled = (self.current_page == self.max_pages - 1)
+        # Add the dropdown select menu
+        self.dropdown = HelpDropdownSelect(embeds)
+        self.add_item(self.dropdown)
 
-    @discord.ui.button(label='◀ Previous', style=discord.ButtonStyle.blurple, disabled=True)
-    async def previous_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        if self.current_page > 0:
-            self.current_page -= 1
-            self.update_buttons()
-            embed = self.embeds[self.current_page]
-            embed.set_footer(text=f"Page {self.current_page + 1}/{self.max_pages} | Bot created for Pokemon collection management")
-            await interaction.response.edit_message(embed=embed, view=self)
-
-    @discord.ui.button(label='▶ Next', style=discord.ButtonStyle.blurple)
-    async def next_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        if self.current_page < self.max_pages - 1:
-            self.current_page += 1
-            self.update_buttons()
-            embed = self.embeds[self.current_page]
-            embed.set_footer(text=f"Page {self.current_page + 1}/{self.max_pages} | Bot created for Pokemon collection management")
-            await interaction.response.edit_message(embed=embed, view=self)
-
-    @discord.ui.button(label='🏠 Home', style=discord.ButtonStyle.green)
+    @discord.ui.button(label='🏠 Home', style=discord.ButtonStyle.green, row=1)
     async def home_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        self.current_page = 0
-        self.update_buttons()
-        embed = self.embeds[self.current_page]
-        embed.set_footer(text=f"Page {self.current_page + 1}/{self.max_pages} | Bot created for Pokemon collection management")
+        embed = self.embeds[0]  # First embed (overview)
+        embed.set_footer(text="Showing: Overview & Basic Commands | Bot created for Pokemon collection management")
+
+        # Reset dropdown to placeholder
+        self.dropdown.placeholder = "📋 Choose a help category..."
+
         await interaction.response.edit_message(embed=embed, view=self)
 
 
@@ -162,12 +231,12 @@ class General(commands.Cog):
     # ===== HELP COMMAND (AT THE START) =====
     @commands.command(name="help")
     async def help_command(self, ctx):
-        """Show help message with all bot commands organized with pagination"""
+        """Show help message with all bot commands organized with dropdown menu"""
 
         # Page 1: Overview and Basic Commands
         embed1 = discord.Embed(
             title="🤖 Pokemon Helper Bot - Command Guide",
-            description="Welcome to the Pokemon Helper Bot! This bot helps you manage Pokemon collections, hunt for shinies, and provides automatic Pokemon detection.\n\n**Navigation:** Use the buttons below to browse through different command categories.",
+            description="Welcome to the Pokemon Helper Bot! This bot helps you manage Pokemon collections, hunt for shinies, and provides automatic Pokemon detection.\n\n**Navigation:** Use the dropdown menu below to browse through different command categories.",
             color=0x3498db
         )
 
@@ -278,7 +347,7 @@ class General(commands.Cog):
         # Page 5: Starboard System
         embed5 = discord.Embed(
             title="⭐ Starboard System",
-            description="Automatically showcase rare catches, shinies, and high IV Pokemon!",
+            description="Automatically showcase rare catches, shinies, and high IV Pokemon Including Eggs!",
             color=0xe67e22
         )
 
@@ -287,8 +356,8 @@ class General(commands.Cog):
             value=(
                 "`m!starboard-channel <#channel>` - Set server starboard channel\n"
                 "`m!globalstarboard-channel <#channel>` - Set global starboard (Owner only)\n"
-                "`m!manualcheck <catch_message>` - Manually check a catch message\n"
-                "`m!manualcheck` (reply to catch) - Check replied catch message"
+                "`m!manualcheck` (reply to catch or id) - Manually check a catch message\n"
+                "`m!eggcheck` (reply to catch or id) - Manually check a catch message for egg related"
             ),
             inline=False
         )
@@ -296,10 +365,10 @@ class General(commands.Cog):
         embed5.add_field(
             name="⭐ What Gets Posted to Starboard",
             value=(
-                "✨ **Shiny Pokemon** - All shiny catches\n"
-                "🎯 **Gigantamax Pokemon** - All Gigantamax catches\n"
-                "📈 **High IV Pokemon** - 90% IV or higher\n"
-                "📉 **Low IV Pokemon** - 10% IV or lower\n"
+                "✨ **Shiny Pokemon** - All shiny catches including eggs\n"
+                "🎯 **Gigantamax Pokemon** - All Gigantamax catches including eggs\n"
+                "📈 **High IV Pokemon** - 90% IV or higher including eggs\n"
+                "📉 **Low IV Pokemon** - 10% IV or lower including eggs\n"
                 "• Automatic detection from Poketwo catch messages\n"
                 "• Includes Pokemon images, stats, and jump-to-message links"
             ),
@@ -370,9 +439,9 @@ class General(commands.Cog):
         embeds = [embed1, embed2, embed3, embed4, embed5, embed6, embed7]
 
         # Set footer for first embed
-        embeds[0].set_footer(text="Page 1/7 | Bot created for Pokemon collection management")
+        embeds[0].set_footer(text="Showing: Overview & Basic Commands | Bot created for Pokemon collection management")
 
-        # Create view with pagination
+        # Create view with dropdown menu
         view = HelpView(embeds)
 
         await ctx.send(embed=embeds[0], view=view)
