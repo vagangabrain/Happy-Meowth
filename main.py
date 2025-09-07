@@ -152,6 +152,7 @@ async def on_ready():
         await bot.load_extension('cogs.general')
         await bot.load_extension('cogs.collection')
         await bot.load_extension('cogs.starboard')
+        await bot.load_extension('cogs.egg')
         print("All cogs loaded successfully")
     except Exception as e:
         print(f"Error loading cogs: {e}")
