@@ -304,7 +304,7 @@ class Starboard(commands.Cog):
 
         elif message_type == 'missingno':
             user_id = catch_data['user_id']
-            embed.title = "❓ Missingno. Detected ❓"
+            embed.title = "<:shinymissingno:1394574231039377468> Missingno. Detected <:shinymissingno:1394574231039377468>"
             embed.description = f"**Caught By:** <@{user_id}>\n**Pokémon:** MissingNo.\n**Level:** ???\n**IV:** {iv_display}"
 
         # Handle Gigantamax Shiny combination
