@@ -42,10 +42,6 @@ class Starboard(commands.Cog):
             # First try to find Gigantamax variant
             gigantamax_name = f"gigantamax {normalized_name}"
 
-            # For Alcremie variants, just use "Gigantamax Alcremie"
-            if "alcremie" in normalized_name:
-                gigantamax_name = "gigantamax alcremie"
-
             for key, value in self.pokemon_data.items():
                 if key.startswith('variant_') and 'gigantamax' in key.lower():
                     pokemon_display_name = value.get('name', '').lower()
@@ -56,55 +52,49 @@ class Starboard(commands.Cog):
                             return base_url.replace('/images/', '/shiny/')
                         return base_url
 
-        # Function to get the right key based on gender
-        def get_pokemon_key(base_key, gender):
-            if gender == 'female':
-                female_key = f"{base_key}_female"
-                if female_key in self.pokemon_data:
-                    return female_key
-            # Default to base key (male or genderless)
-            return base_key if base_key in self.pokemon_data else None
+        # Function to search for Pokemon with proper female variant handling
+        def search_pokemon(search_name, prefer_female=False):
+            # First, try to find exact match
+            for key, value in self.pokemon_data.items():
+                pokemon_entry_name = value.get('name', '').lower()
 
-        # First try to find exact match in pokemon entries
-        for key, value in self.pokemon_data.items():
-            if key.startswith('pokemon_') and value.get('name', '').lower() == normalized_name:
-                # Extract base key (remove _female suffix if present)
-                base_key = key.replace('_female', '')
-                final_key = get_pokemon_key(base_key, gender)
+                # Handle the case where female variants have "_female" in the name
+                if prefer_female and gender == 'female':
+                    # First try to find female variant
+                    if pokemon_entry_name == f"{search_name}_female":
+                        return value.get('image_url', '')
 
-                if final_key:
-                    base_url = self.pokemon_data[final_key].get('image_url', '')
-                    if is_shiny and base_url:
-                        # Replace 'images' with 'shiny' for shiny Pokemon
-                        return base_url.replace('/images/', '/shiny/')
-                    return base_url
+                # Try exact match with the search name
+                if pokemon_entry_name == search_name:
+                    return value.get('image_url', '')
 
-        # Then try variants (non-Gigantamax)
-        for key, value in self.pokemon_data.items():
-            if key.startswith('variant_') and 'gigantamax' not in key.lower() and value.get('name', '').lower() == normalized_name:
-                base_key = key.replace('_female', '')
-                final_key = get_pokemon_key(base_key, gender)
+            # If no exact match, try partial matching
+            for key, value in self.pokemon_data.items():
+                pokemon_entry_name = value.get('name', '').lower()
 
-                if final_key:
-                    base_url = self.pokemon_data[final_key].get('image_url', '')
-                    if is_shiny and base_url:
-                        return base_url.replace('/images/', '/shiny/')
-                    return base_url
+                # Handle female variants in partial matching
+                if prefer_female and gender == 'female':
+                    if f"{search_name}_female" in pokemon_entry_name or pokemon_entry_name in f"{search_name}_female":
+                        return value.get('image_url', '')
 
-        # If no exact match found, try partial matching
-        for key, value in self.pokemon_data.items():
-            pokemon_display_name = value.get('name', '').lower()
-            if normalized_name in pokemon_display_name or pokemon_display_name in normalized_name:
-                base_key = key.replace('_female', '')
-                final_key = get_pokemon_key(base_key, gender)
+                # Regular partial matching
+                if search_name in pokemon_entry_name or pokemon_entry_name in search_name:
+                    return value.get('image_url', '')
 
-                if final_key:
-                    base_url = self.pokemon_data[final_key].get('image_url', '')
-                    if is_shiny and base_url:
-                        return base_url.replace('/images/', '/shiny/')
-                    return base_url
+            return None
 
-        return None
+        # Search for Pokemon image URL
+        base_url = search_pokemon(normalized_name, prefer_female=True)
+
+        # If female variant not found and we were looking for female, try the base name
+        if base_url is None and gender == 'female':
+            base_url = search_pokemon(normalized_name, prefer_female=False)
+
+        if base_url and is_shiny:
+            # Replace 'images' with 'shiny' for shiny Pokemon
+            return base_url.replace('/images/', '/shiny/')
+
+        return base_url
 
     async def set_starboard_channel(self, guild_id, channel_id):
         """Set the starboard channel for a guild"""
