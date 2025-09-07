@@ -237,7 +237,7 @@ class General(commands.Cog):
         embed1 = discord.Embed(
             title="🤖 Pokemon Helper Bot - Command Guide",
             description="Welcome to the Pokemon Helper Bot! This bot helps you manage Pokemon collections, hunt for shinies, and provides automatic Pokemon detection.\n\n**Navigation:** Use the dropdown menu below to browse through different command categories.",
-            color=0x3498db
+            color=0xf4e5ba
         )
 
         embed1.add_field(
@@ -264,7 +264,7 @@ class General(commands.Cog):
         embed2 = discord.Embed(
             title="📚 Collection Management Commands",
             description="Manage your Pokemon collection and get notified when your Pokemon spawn!",
-            color=0xe74c3c
+            color=0xf4e5ba
         )
 
         embed2.add_field(
@@ -293,7 +293,7 @@ class General(commands.Cog):
         embed3 = discord.Embed(
             title="✨ Shiny Hunt System",
             description="Hunt for specific shiny Pokemon and get notified when they spawn!",
-            color=0xf1c40f
+            color=0xf4e5ba
         )
 
         embed3.add_field(
@@ -321,7 +321,7 @@ class General(commands.Cog):
         embed4 = discord.Embed(
             title="😴 AFK & Notification System",
             description="Control when you receive pings and notifications from the bot.",
-            color=0x9b59b6
+            color=0xf4e5ba
         )
 
         embed4.add_field(
@@ -348,7 +348,7 @@ class General(commands.Cog):
         embed5 = discord.Embed(
             title="⭐ Starboard System",
             description="Automatically showcase rare catches, shinies, and high IV Pokemon Including Eggs!",
-            color=0xe67e22
+            color=0xf4e5ba
         )
 
         embed5.add_field(
@@ -379,7 +379,7 @@ class General(commands.Cog):
         embed6 = discord.Embed(
             title="👑 Admin Commands",
             description="Server management commands for administrators.",
-            color=0x2ecc71
+            color=0xf4e5ba
         )
 
         embed6.add_field(
@@ -408,7 +408,7 @@ class General(commands.Cog):
         embed7 = discord.Embed(
             title="🎯 Bot Features & Capabilities",
             description="Comprehensive overview of all bot features and how they work together.",
-            color=0x34495e
+            color=0xf4e5ba
         )
 
         embed7.add_field(
@@ -600,7 +600,7 @@ class General(commands.Cog):
         websocket_latency = round(self.bot.latency * 1000, 2)  # Bot's websocket latency in ms
 
         # Edit message with actual ping info
-        embed = discord.Embed(title="🏓 Pong!", color=0x00ff00)
+        embed = discord.Embed(title="🏓 Pong!", color=0xf4e5ba)
         embed.add_field(name="Message Latency", value=f"{message_latency}ms", inline=True)
         embed.add_field(name="WebSocket Latency", value=f"{websocket_latency}ms", inline=True)
 
