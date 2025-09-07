@@ -467,7 +467,7 @@ class Starboard(commands.Cog):
 
         embed = discord.Embed(
             title=f"Server Settings for {ctx.guild.name}",
-            color=0x3498db,
+            color=0xf4e5ba,
             timestamp=datetime.utcnow()
         )
 
