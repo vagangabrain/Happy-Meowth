@@ -32,6 +32,17 @@ class Egg(commands.Cog):
             print(f"Error loading Pokemon data: {e}")
             return {}
 
+    def get_gender_emoji(self, gender):
+        """Get gender emoji based on gender"""
+        if gender == 'male':
+            return "<:male:1386677873586470932>"
+        elif gender == 'female':
+            return "<:female:1386678736971104339>"
+        elif gender == 'unknown':
+            return "<:unknown:1386678775487664200>"
+        else:
+            return ""
+
     def find_pokemon_image_url(self, pokemon_name, is_shiny=False, gender=None, is_gigantamax=False):
         """Find Pokemon image URL from the loaded data with gender and Gigantamax support"""
         # Normalize the pokemon name for matching
@@ -148,22 +159,26 @@ class Egg(commands.Cog):
         else:
             iv = "Hidden"
 
-        # Extract gender from emoji
+        # Extract gender from emoji - check the full message content for gender emojis
         gender = None
         pokemon_name = pokemon_name_with_gender
 
-        # Check for male emoji
-        if "<:male:" in pokemon_name_with_gender:
+        # First, let's check the full message content for gender emojis
+        if re.search(r'<:male:\d+>', message_content):
             gender = 'male'
+            # Remove gender emoji from pokemon name if it's there
             pokemon_name = re.sub(r'<:male:\d+>', '', pokemon_name_with_gender).strip()
-        # Check for female emoji
-        elif "<:female:" in pokemon_name_with_gender:
+        elif re.search(r'<:female:\d+>', message_content):
             gender = 'female'
+            # Remove gender emoji from pokemon name if it's there
             pokemon_name = re.sub(r'<:female:\d+>', '', pokemon_name_with_gender).strip()
-        # Check for unknown gender emoji
-        elif "<:unknown:" in pokemon_name_with_gender:
+        elif re.search(r'<:unknown:\d+>', message_content):
             gender = 'unknown'
+            # Remove gender emoji from pokemon name if it's there
             pokemon_name = re.sub(r'<:unknown:\d+>', '', pokemon_name_with_gender).strip()
+
+        # Debug print to help troubleshoot
+        print(f"DEBUG: Hatch parsed - Pokemon: '{pokemon_name}', Gender: '{gender}', Full captured: '{pokemon_name_with_gender}'")
 
         # Check for gigantamax (in the hatched pokemon name)
         is_gigantamax = pokemon_name.lower().startswith('gigantamax')
@@ -214,6 +229,18 @@ class Egg(commands.Cog):
         else:
             iv_display = f"{iv}%"
 
+        # Get gender emoji
+        gender_emoji = self.get_gender_emoji(gender)
+
+        # Format Pokemon name with gender emoji - always include if we have gender info
+        if gender_emoji:
+            pokemon_display = f"{pokemon_name} {gender_emoji}"
+        else:
+            pokemon_display = pokemon_name
+
+        # Debug print to help troubleshoot
+        print(f"DEBUG: Creating hatch embed - Pokemon: '{pokemon_name}', Gender: '{gender}', Gender Emoji: '{gender_emoji}', Display: '{pokemon_display}'")
+
         # Get Pokemon image URL with gender and Gigantamax support
         image_url = self.find_pokemon_image_url(pokemon_name, is_shiny, gender, is_gigantamax)
 
@@ -221,7 +248,7 @@ class Egg(commands.Cog):
 
         if embed_type == 'gigantamax':
             embed.title = "<:gigantamax:1413843021241384960> Gigantamax Hatch Detected <:gigantamax:1413843021241384960>"
-            base_description = f"**Pokémon:** {pokemon_name}\n**Level:** {level}\n**IV:** {iv_display}"
+            base_description = f"**Pokémon:** {pokemon_display}\n**Level:** {level}\n**IV:** {iv_display}"
             if hatched_by_id:
                 embed.description = f"**Hatched By:** <@{hatched_by_id}>\n{base_description}"
             else:
@@ -229,7 +256,7 @@ class Egg(commands.Cog):
 
         elif embed_type == 'shiny':
             embed.title = "✨ Sparkling Hatch Detected ✨"
-            base_description = f"**Pokémon:** {pokemon_name}\n**Level:** {level}\n**IV:** {iv_display}"
+            base_description = f"**Pokémon:** {pokemon_display}\n**Level:** {level}\n**IV:** {iv_display}"
             if hatched_by_id:
                 embed.description = f"**Hatched By:** <@{hatched_by_id}>\n{base_description}"
             else:
@@ -237,7 +264,7 @@ class Egg(commands.Cog):
 
         elif embed_type == 'iv_high':
             embed.title = "📈 Rare IV Hatch Detected 📈"
-            base_description = f"**Pokémon:** {pokemon_name}\n**Level:** {level}\n**IV:** {iv_display}"
+            base_description = f"**Pokémon:** {pokemon_display}\n**Level:** {level}\n**IV:** {iv_display}"
             if hatched_by_id:
                 embed.description = f"**Hatched By:** <@{hatched_by_id}>\n{base_description}"
             else:
@@ -245,7 +272,7 @@ class Egg(commands.Cog):
 
         elif embed_type == 'iv_low':
             embed.title = "📉 Rare IV Hatch Detected 📉"
-            base_description = f"**Pokémon:** {pokemon_name}\n**Level:** {level}\n**IV:** {iv_display}"
+            base_description = f"**Pokémon:** {pokemon_display}\n**Level:** {level}\n**IV:** {iv_display}"
             if hatched_by_id:
                 embed.description = f"**Hatched By:** <@{hatched_by_id}>\n{base_description}"
             else:
@@ -420,6 +447,7 @@ class Egg(commands.Cog):
         iv = hatch_data['iv']
         pokemon_name = hatch_data['pokemon_name']
         level = hatch_data['level']
+        gender = hatch_data.get('gender')
 
         criteria_met = []
 
@@ -440,8 +468,12 @@ class Egg(commands.Cog):
             else:
                 iv_display = f"{iv}%"
 
+            # Format pokemon name with gender for error message
+            gender_emoji = self.get_gender_emoji(gender)
+            pokemon_display = f"{pokemon_name} {gender_emoji}" if gender_emoji else pokemon_name
+
             await ctx.reply(f"❌ This hatch doesn't meet starboard criteria.\n"
-                           f"**Pokémon:** {pokemon_name}\n"
+                           f"**Pokémon:** {pokemon_display}\n"
                            f"**Level:** {level}\n"
                            f"**IV:** {iv_display} (need ≥90% or ≤10% for IV criteria)\n"
                            f"**Shiny:** {'Yes' if is_shiny else 'No'}\n"
@@ -470,9 +502,13 @@ class Egg(commands.Cog):
         if original_message:
             debug_info += f"\n**Message:** [Jump to original]({original_message.jump_url})"
 
+        # Format pokemon name with gender for success message
+        gender_emoji = self.get_gender_emoji(gender)
+        pokemon_display = f"{pokemon_name} {gender_emoji}" if gender_emoji else pokemon_name
+
         await ctx.reply(f"✅ Hatch sent to starboard!\n"
                        f"**Criteria met:** {criteria_text}\n"
-                       f"**Pokémon:** {pokemon_name} (Level {level}, {iv_display}){debug_info}")
+                       f"**Pokémon:** {pokemon_display} (Level {level}, {iv_display}){debug_info}")
 
     @egg_check_command.error
     async def egg_check_error(self, ctx, error):
