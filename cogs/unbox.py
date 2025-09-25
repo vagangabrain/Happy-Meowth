@@ -32,6 +32,17 @@ class Unbox(commands.Cog):
             print(f"Error loading Pokemon data: {e}")
             return {}
 
+    def get_gender_emoji(self, gender):
+        """Get gender emoji based on gender"""
+        if gender == 'male':
+            return "<:male:1386677873586470932>"
+        elif gender == 'female':
+            return "<:female:1386678736971104339>"
+        elif gender == 'unknown':
+            return "<:unknown:1386678775487664200>"
+        else:
+            return ""
+
     def find_pokemon_image_url(self, pokemon_name, is_shiny=False, gender=None, is_gigantamax=False):
         """Find Pokemon image URL from the loaded data with gender and Gigantamax support"""
         # Normalize the pokemon name for matching
@@ -173,19 +184,22 @@ class Unbox(commands.Cog):
                     # Determine which groups correspond to what based on pattern
                     if len(match.groups()) == 4:  # Pattern without shiny group
                         level = match.group(1)
-                        pokemon_name = match.group(2).strip()
+                        pokemon_name_with_gender = match.group(2).strip()
                         gender = match.group(3)
                         iv = float(match.group(4))
                     else:  # Pattern with shiny group
                         if match.group(1):  # Shiny marker found in group
                             is_shiny = True
                         level = match.group(2)
-                        pokemon_name = match.group(3).strip()
+                        pokemon_name_with_gender = match.group(3).strip()
                         gender = match.group(4)
                         iv = float(match.group(5))
 
-                    # Clean up Pokemon name (remove common prefixes that might interfere)
-                    pokemon_name = pokemon_name.strip()
+                    # Remove gender emoji from pokemon name if it appears there too
+                    pokemon_name = re.sub(r'<:(male|female|unknown):\d+>', '', pokemon_name_with_gender).strip()
+
+                    # Debug print to help troubleshoot
+                    print(f"DEBUG: Unbox extracted - Pokemon: '{pokemon_name}', Gender: '{gender}', Full captured: '{pokemon_name_with_gender}'")
 
                     # Check for gigantamax
                     is_gigantamax = pokemon_name.lower().startswith('gigantamax')
@@ -258,6 +272,18 @@ class Unbox(commands.Cog):
         # Format IV display
         iv_display = f"{iv}%"
 
+        # Get gender emoji
+        gender_emoji = self.get_gender_emoji(gender)
+
+        # Format Pokemon name with gender emoji - always include if we have gender info
+        if gender_emoji:
+            pokemon_display = f"{pokemon_name} {gender_emoji}"
+        else:
+            pokemon_display = pokemon_name
+
+        # Debug print to help troubleshoot
+        print(f"DEBUG: Creating unbox embed - Pokemon: '{pokemon_name}', Gender: '{gender}', Gender Emoji: '{gender_emoji}', Display: '{pokemon_display}'")
+
         # Get Pokemon image URL with gender and Gigantamax support
         image_url = self.find_pokemon_image_url(pokemon_name, is_shiny, gender, is_gigantamax)
 
@@ -275,7 +301,7 @@ class Unbox(commands.Cog):
             embed.title = "🎁 📉 Rare Low IV Unboxed 📉"
 
         # Build description
-        base_description = f"**Pokémon:** {pokemon_name}\n**Level:** {level}\n**IV:** {iv_display}"
+        base_description = f"**Pokémon:** {pokemon_display}\n**Level:** {level}\n**IV:** {iv_display}"
         if unboxed_by_id:
             embed.description = f"**Unboxed By:** <@{unboxed_by_id}>\n{base_description}"
         else:
@@ -454,7 +480,10 @@ class Unbox(commands.Cog):
         if not qualifying_pokemon:
             pokemon_summary = []
             for pokemon_data in pokemon_list:
-                pokemon_summary.append(f"**{pokemon_data['pokemon_name']}** (Level {pokemon_data['level']}, {pokemon_data['iv']}%)")
+                # Format pokemon name with gender for error message
+                gender_emoji = self.get_gender_emoji(pokemon_data.get('gender'))
+                pokemon_display = f"{pokemon_data['pokemon_name']} {gender_emoji}" if gender_emoji else pokemon_data['pokemon_name']
+                pokemon_summary.append(f"**{pokemon_display}** (Level {pokemon_data['level']}, {pokemon_data['iv']}%)")
 
             summary_text = "\n".join(pokemon_summary) if pokemon_summary else "No Pokemon found"
             await ctx.reply(f"❌ No Pokemon in this unbox meet starboard criteria.\n"
@@ -479,7 +508,10 @@ class Unbox(commands.Cog):
                 criteria_met.append(f"📉 Low IV ({pokemon_data['iv']}%)")
 
             criteria_text = ", ".join(criteria_met)
-            summary_lines.append(f"**{pokemon_data['pokemon_name']}** - {criteria_text}")
+            # Format pokemon name with gender for success message
+            gender_emoji = self.get_gender_emoji(pokemon_data.get('gender'))
+            pokemon_display = f"{pokemon_data['pokemon_name']} {gender_emoji}" if gender_emoji else pokemon_data['pokemon_name']
+            summary_lines.append(f"**{pokemon_display}** - {criteria_text}")
 
         # Add debug info about unboxed_by_id
         debug_info = ""
