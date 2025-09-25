@@ -35,11 +35,11 @@ class Starboard(commands.Cog):
     def get_gender_emoji(self, gender):
         """Get gender emoji based on gender"""
         if gender == 'male':
-            return "<:male:1386677873586470932>"
+            return "<:male:1420708128785170453>"
         elif gender == 'female':
-            return "<:female:1386678736971104339>"
+            return "<:female:1420708136943095889>"
         elif gender == 'unknown':
-            return "<:unknown:1386678775487664200>"
+            return "<:unknown:1420708112310210560>"
         else:
             return ""
 
@@ -325,7 +325,7 @@ class Starboard(commands.Cog):
             shiny_chain = catch_data.get('shiny_chain')
 
             if embed_type == 'gigantamax':
-                embed.title = "<:gigantamax:1413843021241384960> Gigantamax Catch Detected <:gigantamax:1413843021241384960>"
+                embed.title = "<:gigantamax:1420708122267226202> Gigantamax Catch Detected <:gigantamax:1420708122267226202>"
                 embed.description = f"**Caught By:** <@{user_id}>\n**Pokémon:** Gigantamax {pokemon_display}\n**Level:** {level}\n**IV:** {iv_display}"
 
             elif embed_type == 'shiny':
@@ -344,12 +344,12 @@ class Starboard(commands.Cog):
 
         elif message_type == 'missingno':
             user_id = catch_data['user_id']
-            embed.title = "<:shinymissingno:1394574231039377468> Missingno. Detected <:shinymissingno:1394574231039377468>"
+            embed.title = "<:missingno:1420713960465760357> MissingNo. Detected <:missingno:1420713960465760357>"
             embed.description = f"**Caught By:** <@{user_id}>\n**Pokémon:** {pokemon_display}\n**Level:** ???\n**IV:** {iv_display}"
 
         # Handle Gigantamax Shiny combination
         if is_gigantamax and is_shiny and message_type == 'catch':
-            embed.title = "<:gigantamax:1413843021241384960> ✨ Gigantamax Shiny Catch Detected ✨ <:gigantamax:1413843021241384960>"
+            embed.title = "<:gigantamax:1420708122267226202> ✨ Gigantamax Shiny Catch Detected ✨ <:gigantamax:1420708122267226202>"
 
         if image_url:
             embed.set_thumbnail(url=image_url)
@@ -645,7 +645,7 @@ class Starboard(commands.Cog):
             if is_shiny:
                 criteria_met.append("✨ Shiny")
             if is_gigantamax:
-                criteria_met.append("<:gigantamax:1413843021241384960> Gigantamax")
+                criteria_met.append("<:gigantamax:1420708122267226202> Gigantamax")
 
             # Check IV criteria
             iv_value = None
