@@ -184,8 +184,8 @@ class Starboard(commands.Cog):
 
     def parse_poketwo_catch_message(self, message_content):
         """Parse Poketwo catch message to extract relevant information"""
-        # Pattern to match the congratulations message with optional IV and gender emojis
-        catch_pattern = r"Congratulations <@!?(\d+)>! You caught a Level (\d+) (.+?)(?:<:[^:]+:\d+>)?(?:\s+\((\d+\.?\d*)%\))?!"
+        # Updated pattern to properly capture everything including gender emoji
+        catch_pattern = r"Congratulations <@!?(\d+)>! You caught a Level (\d+) (.+?)(?:\s+\((\d+\.?\d*)%\))?!"
 
         match = re.search(catch_pattern, message_content)
         if not match:
@@ -203,22 +203,26 @@ class Starboard(commands.Cog):
         else:
             iv = "Hidden"
 
-        # Extract gender from emoji
+        # Extract gender from emoji - check the entire message content for gender emojis
         gender = None
         pokemon_name = pokemon_name_with_gender
 
-        # Check for male emoji
-        if "<:male:" in pokemon_name_with_gender:
+        # First, let's check the full message content for gender emojis
+        if re.search(r'<:male:\d+>', message_content):
             gender = 'male'
+            # Remove gender emoji from pokemon name if it's there
             pokemon_name = re.sub(r'<:male:\d+>', '', pokemon_name_with_gender).strip()
-        # Check for female emoji
-        elif "<:female:" in pokemon_name_with_gender:
+        elif re.search(r'<:female:\d+>', message_content):
             gender = 'female'
+            # Remove gender emoji from pokemon name if it's there
             pokemon_name = re.sub(r'<:female:\d+>', '', pokemon_name_with_gender).strip()
-        # Check for unknown gender emoji
-        elif "<:unknown:" in pokemon_name_with_gender:
+        elif re.search(r'<:unknown:\d+>', message_content):
             gender = 'unknown'
+            # Remove gender emoji from pokemon name if it's there
             pokemon_name = re.sub(r'<:unknown:\d+>', '', pokemon_name_with_gender).strip()
+
+        # Debug print to help troubleshoot
+        print(f"DEBUG: Parsed message - Pokemon: '{pokemon_name}', Gender: '{gender}', Full captured: '{pokemon_name_with_gender}'")
 
         # Check for shiny
         is_shiny = "These colors seem unusual... ✨" in message_content
@@ -258,6 +262,18 @@ class Starboard(commands.Cog):
 
         user_id = match.group(1)
 
+        # Extract gender from MissingNo message if present - check the full message content
+        gender = None
+        if re.search(r'<:male:\d+>', message_content):
+            gender = 'male'
+        elif re.search(r'<:female:\d+>', message_content):
+            gender = 'female'
+        elif re.search(r'<:unknown:\d+>', message_content):
+            gender = 'unknown'
+
+        # Debug print
+        print(f"DEBUG: MissingNo parsed - Gender: '{gender}'")
+
         return {
             'user_id': user_id,
             'level': '???',
@@ -265,7 +281,7 @@ class Starboard(commands.Cog):
             'iv': '???',
             'is_shiny': False,
             'is_gigantamax': False,
-            'gender': None,
+            'gender': gender,
             'message_type': 'missingno'
         }
 
@@ -290,8 +306,14 @@ class Starboard(commands.Cog):
         # Get gender emoji
         gender_emoji = self.get_gender_emoji(gender)
 
-        # Format Pokemon name with gender emoji
-        pokemon_display = f"{pokemon_name} {gender_emoji}".strip()
+        # Format Pokemon name with gender emoji - always include if we have gender info
+        if gender_emoji:
+            pokemon_display = f"{pokemon_name} {gender_emoji}"
+        else:
+            pokemon_display = pokemon_name
+
+        # Debug print to help troubleshoot
+        print(f"DEBUG: Creating embed - Pokemon: '{pokemon_name}', Gender: '{gender}', Gender Emoji: '{gender_emoji}', Display: '{pokemon_display}'")
 
         # Get Pokemon image URL with gender and Gigantamax support
         image_url = self.find_pokemon_image_url(pokemon_name, is_shiny, gender, is_gigantamax)
@@ -612,6 +634,7 @@ class Starboard(commands.Cog):
         iv = catch_data['iv']
         pokemon_name = catch_data['pokemon_name']
         level = catch_data['level']
+        gender = catch_data.get('gender')
 
         criteria_met = []
 
@@ -623,7 +646,7 @@ class Starboard(commands.Cog):
                 criteria_met.append("✨ Shiny")
             if is_gigantamax:
                 criteria_met.append("<:gigantamax:1413843021241384960> Gigantamax")
-            
+
             # Check IV criteria
             iv_value = None
             if iv != "Hidden" and iv != "???":
@@ -647,8 +670,12 @@ class Starboard(commands.Cog):
             else:
                 iv_display = f"{iv}%"
 
+            # Format pokemon name with gender for error message
+            gender_emoji = self.get_gender_emoji(gender)
+            pokemon_display = f"{pokemon_name}{gender_emoji}" if gender_emoji else pokemon_name
+
             await ctx.reply(f"❌ This {message_type} doesn't meet starboard criteria.\n"
-                           f"**Pokémon:** {pokemon_name}\n"
+                           f"**Pokémon:** {pokemon_display}\n"
                            f"**Level:** {level}\n"
                            f"**IV:** {iv_display} (need ≥90% or ≤10% for IV criteria)\n"
                            f"**Shiny:** {'Yes' if is_shiny else 'No'}\n"
@@ -667,6 +694,10 @@ class Starboard(commands.Cog):
         else:
             iv_display = f"{iv}%"
 
+        # Format pokemon name with gender for success message
+        gender_emoji = self.get_gender_emoji(gender)
+        pokemon_display = f"{pokemon_name}{gender_emoji}" if gender_emoji else pokemon_name
+
         # Add message source info
         debug_info = ""
         if original_message:
@@ -674,7 +705,7 @@ class Starboard(commands.Cog):
 
         await ctx.reply(f"✅ {message_type.capitalize()} sent to starboard!\n"
                        f"**Criteria met:** {criteria_text}\n"
-                       f"**Pokémon:** {pokemon_name} (Level {level}, {iv_display}){debug_info}")
+                       f"**Pokémon:** {pokemon_display} (Level {level}, {iv_display}){debug_info}")
 
     @manual_check_command.error
     async def manual_check_error(self, ctx, error):
