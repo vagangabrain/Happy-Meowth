@@ -32,6 +32,17 @@ class Starboard(commands.Cog):
             print(f"Error loading Pokemon data: {e}")
             return {}
 
+    def get_gender_emoji(self, gender):
+        """Get gender emoji based on gender"""
+        if gender == 'male':
+            return "<:male:1386677873586470932>"
+        elif gender == 'female':
+            return "<:female:1386678736971104339>"
+        elif gender == 'unknown':
+            return "<:unknown:1386678775487664200>"
+        else:
+            return ""
+
     def find_pokemon_image_url(self, pokemon_name, is_shiny=False, gender=None, is_gigantamax=False):
         """Find Pokemon image URL from the loaded data with gender and Gigantamax supportz"""
         # Normalize the pokemon name for matching
@@ -187,7 +198,8 @@ class Starboard(commands.Cog):
 
         # Handle IV - if not present, it's hidden
         if iv_str:
-            iv = float(iv_str)
+            # Keep the original string format to preserve trailing zeros
+            iv = iv_str
         else:
             iv = "Hidden"
 
@@ -275,6 +287,12 @@ class Starboard(commands.Cog):
         else:
             iv_display = f"{iv}%"
 
+        # Get gender emoji
+        gender_emoji = self.get_gender_emoji(gender)
+
+        # Format Pokemon name with gender emoji
+        pokemon_display = f"{pokemon_name} {gender_emoji}".strip()
+
         # Get Pokemon image URL with gender and Gigantamax support
         image_url = self.find_pokemon_image_url(pokemon_name, is_shiny, gender, is_gigantamax)
 
@@ -286,26 +304,26 @@ class Starboard(commands.Cog):
 
             if embed_type == 'gigantamax':
                 embed.title = "<:gigantamax:1413843021241384960> Gigantamax Catch Detected <:gigantamax:1413843021241384960>"
-                embed.description = f"**Caught By:** <@{user_id}>\n**Pokémon:** Gigantamax {pokemon_name}\n**Level:** {level}\n**IV:** {iv_display}"
+                embed.description = f"**Caught By:** <@{user_id}>\n**Pokémon:** Gigantamax {pokemon_display}\n**Level:** {level}\n**IV:** {iv_display}"
 
             elif embed_type == 'shiny':
                 embed.title = "✨ Shiny Catch Detected ✨"
-                embed.description = f"**Caught By:** <@{user_id}>\n**Pokémon:** {pokemon_name}\n**Level:** {level}\n**IV:** {iv_display}"
+                embed.description = f"**Caught By:** <@{user_id}>\n**Pokémon:** {pokemon_display}\n**Level:** {level}\n**IV:** {iv_display}"
                 if shiny_chain:
                     embed.description += f"\n**Chain:** {shiny_chain}"
 
             elif embed_type == 'iv_high':
                 embed.title = "📈 Rare IV Catch Detected 📈"
-                embed.description = f"**Caught By:** <@{user_id}>\n**Pokémon:** {pokemon_name}\n**Level:** {level}\n**IV:** {iv_display}"
+                embed.description = f"**Caught By:** <@{user_id}>\n**Pokémon:** {pokemon_display}\n**Level:** {level}\n**IV:** {iv_display}"
 
             elif embed_type == 'iv_low':
                 embed.title = "📉 Rare IV Catch Detected 📉"
-                embed.description = f"**Caught By:** <@{user_id}>\n**Pokémon:** {pokemon_name}\n**Level:** {level}\n**IV:** {iv_display}"
+                embed.description = f"**Caught By:** <@{user_id}>\n**Pokémon:** {pokemon_display}\n**Level:** {level}\n**IV:** {iv_display}"
 
         elif message_type == 'missingno':
             user_id = catch_data['user_id']
             embed.title = "<:shinymissingno:1394574231039377468> Missingno. Detected <:shinymissingno:1394574231039377468>"
-            embed.description = f"**Caught By:** <@{user_id}>\n**Pokémon:** MissingNo.\n**Level:** ???\n**IV:** {iv_display}"
+            embed.description = f"**Caught By:** <@{user_id}>\n**Pokémon:** {pokemon_display}\n**Level:** ???\n**IV:** {iv_display}"
 
         # Handle Gigantamax Shiny combination
         if is_gigantamax and is_shiny and message_type == 'catch':
@@ -368,11 +386,19 @@ class Starboard(commands.Cog):
                 embeds_to_send.append((embed, view))
 
             # Check for rare IV (>90 or <10) - only if IV is a number
-            if isinstance(iv, (int, float)):
-                if iv >= 90:
+            # Convert IV string to float for comparison, but keep original string for display
+            iv_value = None
+            if iv != "Hidden" and iv != "???":
+                try:
+                    iv_value = float(iv)
+                except ValueError:
+                    iv_value = None
+
+            if iv_value is not None:
+                if iv_value >= 90:
                     embed, view = self.create_catch_embed(catch_data, 'iv_high', original_message)
                     embeds_to_send.append((embed, view))
-                elif iv <= 10:
+                elif iv_value <= 10:
                     embed, view = self.create_catch_embed(catch_data, 'iv_low', original_message)
                     embeds_to_send.append((embed, view))
 
@@ -597,10 +623,19 @@ class Starboard(commands.Cog):
                 criteria_met.append("✨ Shiny")
             if is_gigantamax:
                 criteria_met.append("<:gigantamax:1413843021241384960> Gigantamax")
-            if isinstance(iv, (int, float)):
-                if iv >= 90:
+            
+            # Check IV criteria
+            iv_value = None
+            if iv != "Hidden" and iv != "???":
+                try:
+                    iv_value = float(iv)
+                except ValueError:
+                    iv_value = None
+
+            if iv_value is not None:
+                if iv_value >= 90:
                     criteria_met.append(f"📈 High IV ({iv}%)")
-                elif iv <= 10:
+                elif iv_value <= 10:
                     criteria_met.append(f"📉 Low IV ({iv}%)")
 
         if not criteria_met:
@@ -679,9 +714,18 @@ class Starboard(commands.Cog):
         # MissingNo. always goes to starboard
         if message_type == 'missingno':
             await self.send_to_starboard_channels(message.guild, catch_data, message)
-        # For catches, check criteria
-        elif is_shiny or is_gigantamax or (isinstance(iv, (int, float)) and (iv >= 90 or iv <= 10)):
-            await self.send_to_starboard_channels(message.guild, catch_data, message)
+        else:
+            # For catches, check criteria
+            # Convert IV string to float for comparison, but keep original string for display
+            iv_value = None
+            if iv != "Hidden" and iv != "???":
+                try:
+                    iv_value = float(iv)
+                except ValueError:
+                    iv_value = None
+
+            if is_shiny or is_gigantamax or (iv_value is not None and (iv_value >= 90 or iv_value <= 10)):
+                await self.send_to_starboard_channels(message.guild, catch_data, message)
 
 async def setup(bot):
     await bot.add_cog(Starboard(bot))
