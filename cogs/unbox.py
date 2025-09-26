@@ -35,11 +35,11 @@ class Unbox(commands.Cog):
     def get_gender_emoji(self, gender):
         """Get gender emoji based on gender"""
         if gender == 'male':
-            return "<:male:1386677873586470932>"
+            return "<:male:1420708128785170453>"
         elif gender == 'female':
-            return "<:female:1386678736971104339>"
+            return "<:female:1420708136943095889>"
         elif gender == 'unknown':
-            return "<:unknown:1386678775487664200>"
+            return "<:unknown:1420708112310210560>"
         else:
             return ""
 
@@ -290,15 +290,15 @@ class Unbox(commands.Cog):
         embed = discord.Embed(color=0xf4e5ba, timestamp=datetime.utcnow())
 
         if embed_type == 'gigantamax_shiny':
-            embed.title = "<:gigantamax:1413843021241384960> ✨ Gigantamax Shiny Unbox Detected ✨ <:gigantamax:1413843021241384960>"
+            embed.title = "<:gigantamax:1420708122267226202> ✨ Gigantamax Shiny Unbox Detected ✨ <:gigantamax:1420708122267226202>"
         elif embed_type == 'gigantamax':
-            embed.title = "<:gigantamax:1413843021241384960> Gigantamax Unbox Detected <:gigantamax:1413843021241384960>"
+            embed.title = "<:gigantamax:1420708122267226202> Gigantamax Unbox Detected <:gigantamax:1420708122267226202>"
         elif embed_type == 'shiny':
-            embed.title = "🎁 ✨ Shiny Unbox Detected ✨"
+            embed.title = "<a:animatedgiftbox:1421047436625055754>  ✨ Shiny Unbox Detected ✨ <a:animatedgiftbox:1421047436625055754> "
         elif embed_type == 'iv_high':
-            embed.title = "🎁 📈 Decent IV Unboxed 📈"
+            embed.title = "<:giftbox:1421047453511323658> 📈 Decent IV Unboxed 📈 <:giftbox:1421047453511323658>"
         elif embed_type == 'iv_low':
-            embed.title = "🎁 📉 Rare Low IV Unboxed 📉"
+            embed.title = "<:giftbox:1421047453511323658> 📉 Rare Low IV Unboxed 📉 <:giftbox:1421047453511323658>"
 
         # Build description
         base_description = f"**Pokémon:** {pokemon_display}\n**Level:** {level}\n**IV:** {iv_display}"
@@ -389,14 +389,14 @@ class Unbox(commands.Cog):
                     except Exception as e:
                         print(f"Error sending to global starboard: {e}")
 
-    @commands.command(name="boxcheck")
+    @commands.command(name="bcheck")
     @commands.has_permissions(administrator=True)
     async def box_check_command(self, ctx, *, input_data=None):
         """Manually check a Poketwo box opening message and send to starboard if it meets criteria
 
         Usage:
-        - Reply to a message: m!boxcheck
-        - Provide message ID: m!boxcheck 123456789012345678
+        - Reply to a message: m!bcheck
+        - Provide message ID: m!bcheck 123456789012345678
         """
 
         original_message = None
@@ -412,7 +412,7 @@ class Unbox(commands.Cog):
             else:
                 await ctx.reply("Please provide a message ID or reply to a Poketwo box opening message.\n"
                                "Examples:\n"
-                               "`m!boxcheck 123456789012345678` (message ID)\n"
+                               "`m!bcheck 123456789012345678` (message ID)\n"
                                "Or reply to a message with just `m!boxcheck`")
                 return
         else:
@@ -501,7 +501,7 @@ class Unbox(commands.Cog):
             if pokemon_data['is_shiny']:
                 criteria_met.append("✨ Shiny")
             if pokemon_data['is_gigantamax']:
-                criteria_met.append("<:gigantamax:1413843021241384960> Gigantamax")
+                criteria_met.append("<:gigantamax:1420708122267226202> Gigantamax")
             if pokemon_data['iv'] >= 90:
                 criteria_met.append(f"📈 High IV ({pokemon_data['iv']}%)")
             elif pokemon_data['iv'] <= 10:
