@@ -44,12 +44,27 @@ class Starboard(commands.Cog):
             return ""
 
     def find_pokemon_image_url(self, pokemon_name, is_shiny=False, gender=None, is_gigantamax=False):
-        """Find Pokemon image URL from the loaded data with gender and Gigantamax supportz"""
+        """Find Pokemon image URL from the loaded data with gender and Gigantamax support"""
         # Normalize the pokemon name for matching
         normalized_name = pokemon_name.strip().lower()
 
-        # If it's Gigantamax, search for Gigantamax variant first
-        if is_gigantamax:
+        # Special case for Eternatus - use "eternamax" instead of "gigantamax" when it has gigantamax factor
+        if is_gigantamax and normalized_name == "eternatus":
+            # Search for Eternamax variant
+            eternamax_name = "eternamax eternatus"
+
+            for key, value in self.pokemon_data.items():
+                if key.startswith('variant_') and 'eternamax' in key.lower():
+                    pokemon_display_name = value.get('name', '').lower()
+                    if eternamax_name == pokemon_display_name:
+                        base_url = value.get('image_url', '')
+                        if is_shiny and base_url:
+                            # Replace 'images' with 'shiny' for shiny Eternamax
+                            return base_url.replace('/images/', '/shiny/')
+                        return base_url
+
+        # If it's Gigantamax (but not Eternatus), search for Gigantamax variant first
+        elif is_gigantamax:
             # First try to find Gigantamax variant
             gigantamax_name = f"gigantamax {normalized_name}"
 
@@ -269,15 +284,18 @@ class Starboard(commands.Cog):
         elif re.search(r'<:unknown:\d+>', message_content):
             gender = 'unknown'
 
+        # Check for shiny MissingNo. - THIS WAS THE MISSING PART!
+        is_shiny = "These colors seem unusual... ✨" in message_content
+
         # Debug print
-        print(f"DEBUG: MissingNo parsed - Gender: '{gender}'")
+        print(f"DEBUG: MissingNo parsed - Gender: '{gender}', Shiny: {is_shiny}")
 
         return {
             'user_id': user_id,
             'level': '???',
             'pokemon_name': 'MissingNo.',
             'iv': '???',
-            'is_shiny': False,
+            'is_shiny': is_shiny,  # Now properly detects shiny
             'is_gigantamax': False,
             'gender': gender,
             'message_type': 'missingno'
@@ -304,11 +322,18 @@ class Starboard(commands.Cog):
         # Get gender emoji
         gender_emoji = self.get_gender_emoji(gender)
 
+        # Special handling for Eternatus with Gigantamax factor
+        display_pokemon_name = pokemon_name
+        if is_gigantamax and pokemon_name.lower() == "eternatus":
+            display_pokemon_name = "Eternamax Eternatus"
+        elif is_gigantamax:
+            display_pokemon_name = f"Gigantamax {pokemon_name}"
+
         # Format Pokemon name with gender emoji - always include if we have gender info
         if gender_emoji:
-            pokemon_display = f"{pokemon_name} {gender_emoji}"
+            pokemon_display = f"{display_pokemon_name} {gender_emoji}"
         else:
-            pokemon_display = pokemon_name
+            pokemon_display = display_pokemon_name
 
         # Debug print to help troubleshoot
         print(f"DEBUG: Creating embed - Pokemon: '{pokemon_name}', Gender: '{gender}', Gender Emoji: '{gender_emoji}', Display: '{pokemon_display}'")
@@ -323,8 +348,13 @@ class Starboard(commands.Cog):
             shiny_chain = catch_data.get('shiny_chain')
 
             if embed_type == 'gigantamax':
-                embed.title = "<:gigantamax:1420708122267226202> Gigantamax Catch Detected <:gigantamax:1420708122267226202>"
-                embed.description = f"**Caught By:** <@{user_id}>\n**Pokémon:** Gigantamax {pokemon_display}\n**Level:** {level}\n**IV:** {iv_display}"
+                # Special case for Eternatus
+                if pokemon_name.lower() == "eternatus":
+                    embed.title = "<:gigantamax:1420708122267226202> Eternamax Catch Detected <:gigantamax:1420708122267226202>"
+                    embed.description = f"**Caught By:** <@{user_id}>\n**Pokémon:** {pokemon_display}\n**Level:** {level}\n**IV:** {iv_display}"
+                else:
+                    embed.title = "<:gigantamax:1420708122267226202> Gigantamax Catch Detected <:gigantamax:1420708122267226202>"
+                    embed.description = f"**Caught By:** <@{user_id}>\n**Pokémon:** {pokemon_display}\n**Level:** {level}\n**IV:** {iv_display}"
 
             elif embed_type == 'shiny':
                 embed.title = "✨ Shiny Catch Detected ✨"
@@ -342,12 +372,21 @@ class Starboard(commands.Cog):
 
         elif message_type == 'missingno':
             user_id = catch_data['user_id']
-            embed.title = "<:missingno:1420713960465760357> MissingNo. Detected <:missingno:1420713960465760357>"
+
+            # Handle shiny MissingNo. - THIS IS THE KEY FIX!
+            if is_shiny:
+                embed.title = "✨ <:missingno:1420713960465760357> Shiny MissingNo. Detected <:missingno:1420713960465760357> ✨"
+            else:
+                embed.title = "<:missingno:1420713960465760357> MissingNo. Detected <:missingno:1420713960465760357>"
+
             embed.description = f"**Caught By:** <@{user_id}>\n**Pokémon:** {pokemon_display}\n**Level:** ???\n**IV:** {iv_display}"
 
-        # Handle Gigantamax Shiny combination
+        # Handle Gigantamax Shiny combination for regular Pokemon
         if is_gigantamax and is_shiny and message_type == 'catch':
-            embed.title = "<:gigantamax:1420708122267226202> ✨ Gigantamax Shiny Catch Detected ✨ <:gigantamax:1420708122267226202>"
+            if pokemon_name.lower() == "eternatus":
+                embed.title = "<:gigantamax:1420708122267226202> ✨ Shiny Eternamax Catch Detected ✨ <:gigantamax:1420708122267226202>"
+            else:
+                embed.title = "<:gigantamax:1420708122267226202> ✨ Gigantamax Shiny Catch Detected ✨ <:gigantamax:1420708122267226202>"
 
         if image_url:
             embed.set_thumbnail(url=image_url)
