@@ -5267,8 +5267,8 @@
     "name": "Gigantamax Duraludon",
     "image_url": "https://cdn.poketwo.net/images/10216.png"
   },
-  "variant_890_Gigantamax_Eternatus": {
-    "name": "Gigantamax Eternatus",
+  "variant_890_Eternamax_Eternatus": {
+    "name": "Eternamax Eternatus",
     "image_url": "https://cdn.poketwo.net/images/10217.png"
   },
   "variant_892_Gigantamax_Single_Strike_Urshifu": {
