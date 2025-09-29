@@ -350,14 +350,14 @@ class Starboard(commands.Cog):
                 if pokemon_name.lower() == "eternatus":
                     embed.title = "✨ <:gigantamax:1420708122267226202> 📈 Shiny Eternamax High IV Catch Detected 📈 <:gigantamax:1420708122267226202> ✨"
                 else:
-                    embed.title = "✨ <:gigantamax:1420708122267226202> 📈 Shiny Gigantamax High IV Catch Detected 📈 <:gigantamax:1420708122267226202> ✨"
+                    embed.title = "✨ <:gigantamax:1420708122267226202> 📈 Shiny Gmax High IV Catch Detected 📈 <:gigantamax:1420708122267226202> ✨"
 
             elif embed_type == 'shiny_gigantamax_rare_iv_low':
                 # Triple combo - Shiny + Gigantamax + Low IV
                 if pokemon_name.lower() == "eternatus":
                     embed.title = "✨ <:gigantamax:1420708122267226202> 📉 Shiny Eternamax Low IV Catch Detected 📉 <:gigantamax:1420708122267226202> ✨"
                 else:
-                    embed.title = "✨ <:gigantamax:1420708122267226202> 📉 Shiny Gigantamax Low IV Catch Detected 📉 <:gigantamax:1420708122267226202> ✨"
+                    embed.title = "✨ <:gigantamax:1420708122267226202> 📉 Shiny Gmax Low IV Catch Detected 📉 <:gigantamax:1420708122267226202> ✨"
 
             elif embed_type == 'shiny_gigantamax':
                 # Shiny + Gigantamax
