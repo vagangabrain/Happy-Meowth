@@ -245,7 +245,8 @@ class General(commands.Cog):
             value=(
                 "`m!ping` - Check bot latency and response time\n"
                 "`m!help` - Show this help message\n"
-                "`m!serverpage` - View server settings (roles, starboard channel)"
+                "`m!serverpage` - View server settings (roles, starboard channel)\n"
+                "`m!toggle naming` - Toggle smart Pokemon naming (Admin only)"
             ),
             inline=False
         )
@@ -255,7 +256,8 @@ class General(commands.Cog):
             value=(
                 "`m!predict <image_url>` - Predict Pokemon from image URL\n"
                 "`m!predict` (reply to image) - Predict Pokemon from replied image\n"
-                "🤖 **Auto-detection:** Automatically identifies Poketwo spawns!"
+                "🤖 **Auto-detection:** Automatically identifies Poketwo spawns!\n"
+                "💡 **Smart Naming:** Only names Pokemon with active collectors/hunters/pings (toggle with `m!toggle naming`)"
             ),
             inline=False
         )
@@ -388,6 +390,7 @@ class General(commands.Cog):
                 "`m!rare-role @role` - Set role to ping for rare Pokemon\n"
                 "`m!regional-role @role` - Set role to ping for regional Pokemon\n"
                 "`m!starboard-channel <#channel>` - Set starboard channel\n"
+                "`m!toggle naming` - Toggle smart Pokemon naming feature\n"
                 "*Requires Administrator permission*"
             ),
             inline=False
@@ -398,6 +401,7 @@ class General(commands.Cog):
             value=(
                 "`m!serverpage` - View all server settings\n"
                 "• Shows rare role, regional role, and starboard channel\n"
+                "• Shows smart naming status\n"
                 "• Displays guild ID for reference\n"
                 "• Available to all users"
             ),
@@ -415,6 +419,7 @@ class General(commands.Cog):
             name="🎯 Automatic Features",
             value=(
                 "• **Auto Pokemon Detection** - Identifies Poketwo spawns automatically\n"
+                "• **Smart Naming** - Only names Pokemon with collectors/hunters/pings\n"
                 "• **Shiny Hunter Pinging** - Mentions users hunting that Pokemon\n"
                 "• **Collector Pinging** - Mentions users who have that Pokemon in collection\n"
                 "• **Starboard Auto-posting** - Rare catches posted automatically\n"
@@ -478,6 +483,28 @@ class General(commands.Cog):
         self._cache_timestamps[guild_id] = time.time()
         return None, None
 
+    async def get_smart_naming_enabled(self, guild_id):
+        """Check if smart naming is enabled for a guild"""
+        if self.db is None:
+            return True  # Default to enabled
+
+        try:
+            # Check cache first
+            if self._is_cache_valid(guild_id) and guild_id in self._guild_settings_cache:
+                cached_settings = self._guild_settings_cache[guild_id]
+                return cached_settings.get('smart_naming_enabled', True)
+
+            guild_settings = await self.db.guild_settings.find_one({"guild_id": guild_id})
+            if guild_settings:
+                # Update cache
+                self._guild_settings_cache[guild_id] = guild_settings
+                self._cache_timestamps[guild_id] = time.time()
+                return guild_settings.get('smart_naming_enabled', True)
+        except Exception as e:
+            print(f"Error getting smart naming setting: {e}")
+
+        return True  # Default to enabled
+
     async def set_rare_role(self, guild_id, role_id):
         """Set the rare Pokemon ping role for a guild"""
         if self.db is None:
@@ -516,6 +543,32 @@ class General(commands.Cog):
             print(f"Error setting regional role: {e}")
             return f"Database error: {str(e)[:100]}"
 
+    async def toggle_smart_naming(self, guild_id):
+        """Toggle smart naming feature for a guild"""
+        if self.db is None:
+            return "Database not available", False
+
+        try:
+            guild_settings = await self.db.guild_settings.find_one({"guild_id": guild_id})
+            current_status = guild_settings.get('smart_naming_enabled', True) if guild_settings else True
+            new_status = not current_status
+
+            await self.db.guild_settings.update_one(
+                {"guild_id": guild_id},
+                {"$set": {"smart_naming_enabled": new_status}},
+                upsert=True
+            )
+
+            # Invalidate cache
+            self._guild_settings_cache.pop(guild_id, None)
+            self._cache_timestamps.pop(guild_id, None)
+
+            status_text = "enabled" if new_status else "disabled"
+            return f"Smart Pokemon naming has been **{status_text}**.", new_status
+        except Exception as e:
+            print(f"Error toggling smart naming: {e}")
+            return f"Database error: {str(e)[:100]}", False
+
     async def get_pokemon_ping_info(self, pokemon_name, guild_id):
         """Get ping information for a Pokemon based on its rarity"""
         if self.db is None:
@@ -537,6 +590,39 @@ class General(commands.Cog):
             return f"Regional Ping: <@&{regional_role_id}>"
 
         return None
+
+    async def should_name_pokemon(self, pokemon_name, guild_id):
+        """
+        Determine if a Pokemon should be named based on whether it has:
+        - Active collectors
+        - Active shiny hunters
+        - Rare/regional ping roles configured
+        """
+        # Check if smart naming is enabled
+        smart_naming_enabled = await self.get_smart_naming_enabled(guild_id)
+        if not smart_naming_enabled:
+            return True  # Always name if feature is disabled
+
+        collection_cog = self.bot.get_cog('Collection')
+        if not collection_cog:
+            return True  # Default to naming if collection cog not available
+
+        # Check for collectors, hunters, and ping info concurrently
+        tasks = [
+            collection_cog.get_shiny_hunters_for_pokemon(pokemon_name, guild_id),
+            collection_cog.get_collectors_for_pokemon(pokemon_name, guild_id),
+            self.get_pokemon_ping_info(pokemon_name, guild_id)
+        ]
+
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        hunters, collectors, ping_info = results
+
+        # Name the Pokemon if any of these conditions are met
+        has_hunters = isinstance(hunters, list) and len(hunters) > 0
+        has_collectors = isinstance(collectors, list) and len(collectors) > 0
+        has_ping = isinstance(ping_info, str) and ping_info is not None
+
+        return has_hunters or has_collectors or has_ping
 
     async def _predict_pokemon(self, image_url, ctx):
         """Helper method for Pokemon prediction with optimized async handling"""
@@ -694,6 +780,45 @@ class General(commands.Cog):
         elif isinstance(error, commands.BadArgument):
             await ctx.reply("Invalid role mention or ID. Use @role or role ID.")
 
+    @commands.command(name="toggle")
+    @commands.has_permissions(administrator=True)
+    async def toggle_command(self, ctx, feature: str = None):
+        """Toggle server features (e.g., naming)"""
+        if not feature:
+            await ctx.reply("Please specify a feature to toggle. Available: `naming`")
+            return
+
+        if feature.lower() == "naming":
+            message, new_status = await self.toggle_smart_naming(ctx.guild.id)
+            
+            embed = discord.Embed(
+                title="🔧 Smart Naming Toggle",
+                description=message,
+                color=0x00ff00 if new_status else 0xff0000
+            )
+            
+            if new_status:
+                embed.add_field(
+                    name="ℹ️ How it works",
+                    value="Pokemon will only be named if they have:\n• Active collectors\n• Active shiny hunters\n• Rare/Regional ping roles configured",
+                    inline=False
+                )
+            else:
+                embed.add_field(
+                    name="ℹ️ Current Status",
+                    value="All Pokemon spawns will be named regardless of collectors/hunters.",
+                    inline=False
+                )
+            
+            await ctx.reply(embed=embed)
+        else:
+            await ctx.reply(f"Unknown feature: `{feature}`. Available features: `naming`")
+
+    @toggle_command.error
+    async def toggle_error(self, ctx, error):
+        if isinstance(error, commands.MissingPermissions):
+            await ctx.reply("You need administrator permissions to use this command.")
+
     # ===== EVENT LISTENERS =====
     @commands.Cog.listener()
     async def on_message(self, message):
@@ -730,33 +855,39 @@ class General(commands.Cog):
                                     try:
                                         confidence_value = float(confidence_str)
                                         if confidence_value >= 70.0:  # Only show if confidence >= 70%
-                                            formatted_output = format_pokemon_prediction(name, confidence)
+                                            # Check if we should name this Pokemon
+                                            should_name = await self.should_name_pokemon(name, message.guild.id)
+                                            
+                                            if should_name:
+                                                formatted_output = format_pokemon_prediction(name, confidence)
 
-                                            # Get all ping information concurrently
-                                            collection_cog = self.bot.get_cog('Collection')
-                                            if collection_cog:
-                                                # Run all database queries concurrently for better performance
-                                                tasks = [
-                                                    collection_cog.get_shiny_hunters_for_pokemon(name, message.guild.id),
-                                                    collection_cog.get_collectors_for_pokemon(name, message.guild.id),
-                                                    self.get_pokemon_ping_info(name, message.guild.id)
-                                                ]
+                                                # Get all ping information concurrently
+                                                collection_cog = self.bot.get_cog('Collection')
+                                                if collection_cog:
+                                                    # Run all database queries concurrently for better performance
+                                                    tasks = [
+                                                        collection_cog.get_shiny_hunters_for_pokemon(name, message.guild.id),
+                                                        collection_cog.get_collectors_for_pokemon(name, message.guild.id),
+                                                        self.get_pokemon_ping_info(name, message.guild.id)
+                                                    ]
 
-                                                results = await asyncio.gather(*tasks, return_exceptions=True)
-                                                hunters, collectors, ping_info = results
+                                                    results = await asyncio.gather(*tasks, return_exceptions=True)
+                                                    hunters, collectors, ping_info = results
 
-                                                # Handle results safely
-                                                if isinstance(hunters, list) and hunters:
-                                                    formatted_output += f"\nShiny Hunters: {' '.join(hunters)}"
+                                                    # Handle results safely
+                                                    if isinstance(hunters, list) and hunters:
+                                                        formatted_output += f"\nShiny Hunters: {' '.join(hunters)}"
 
-                                                if isinstance(collectors, list) and collectors:
-                                                    collector_mentions = " ".join([f"<@{user_id}>" for user_id in collectors])
-                                                    formatted_output += f"\nCollectors: {collector_mentions}"
+                                                    if isinstance(collectors, list) and collectors:
+                                                        collector_mentions = " ".join([f"<@{user_id}>" for user_id in collectors])
+                                                        formatted_output += f"\nCollectors: {collector_mentions}"
 
-                                                if isinstance(ping_info, str) and ping_info:
-                                                    formatted_output += f"\n{ping_info}"
+                                                    if isinstance(ping_info, str) and ping_info:
+                                                        formatted_output += f"\n{ping_info}"
 
-                                            await message.reply(formatted_output)
+                                                await message.reply(formatted_output)
+                                            else:
+                                                print(f"Pokemon {name} not named - no collectors/hunters/pings")
                                         else:
                                             print(f"Low confidence prediction skipped: {name} ({confidence})")
                                     except ValueError:
