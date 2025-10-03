@@ -283,48 +283,37 @@ class Egg(commands.Cog):
             pokemon_display = pokemon_name
 
         # Debug print to help troubleshoot
-        print(f"DEBUG: Creating hatch embed - Pokemon: '{pokemon_name}', Gender: '{gender}', Gender Emoji: '{gender_emoji}', Display: '{pokemon_display}'")
+        print(f"DEBUG: Creating hatch embed - Pokemon: '{pokemon_name}', Gender: '{gender}', Type: '{embed_type}'")
 
         # Get Pokemon image URL with gender and Gigantamax support
         image_url = self.find_pokemon_image_url(pokemon_name, is_shiny, gender, is_gigantamax)
 
         embed = discord.Embed(color=0xf4e5ba, timestamp=datetime.utcnow())
 
-        if embed_type == 'gigantamax':
-            embed.title = "<:gigantamax:1413843021241384960> Gigantamax Hatch Detected <:gigantamax:1413843021241384960>"
-            base_description = f"**Pokémon:** {pokemon_display}\n**Level:** {level}\n**IV:** {iv_display}"
-            if hatched_by_id:
-                embed.description = f"**Hatched By:** <@{hatched_by_id}>\n{base_description}"
-            else:
-                embed.description = base_description
+        # Base description builder
+        base_description = f"**Pokémon:** {pokemon_display}\n**Level:** {level}\n**IV:** {iv_display}"
+        if hatched_by_id:
+            description = f"**Hatched By:** <@{hatched_by_id}>\n{base_description}"
+        else:
+            description = base_description
 
-        elif embed_type == 'shiny':
-            embed.title = "✨ Sparkling Hatch Detected ✨"
-            base_description = f"**Pokémon:** {pokemon_display}\n**Level:** {level}\n**IV:** {iv_display}"
-            if hatched_by_id:
-                embed.description = f"**Hatched By:** <@{hatched_by_id}>\n{base_description}"
-            else:
-                embed.description = base_description
+        # Set title and description based on embed type
+        embed_titles = {
+            'shiny_gmax_high_iv': "<:gigantamax:1413843021241384960> ✨ 📈 Ultimate Hatch - Shiny Gigantamax High IV! 📈 ✨ <:gigantamax:1413843021241384960>",
+            'shiny_gmax_low_iv': "<:gigantamax:1413843021241384960> ✨ 📉 Ultimate Hatch - Shiny Gigantamax Low IV! 📉 ✨ <:gigantamax:1413843021241384960>",
+            'shiny_gmax': "<:gigantamax:1413843021241384960> ✨ Gigantamax Sparkling Hatch Detected ✨ <:gigantamax:1413843021241384960>",
+            'shiny_high_iv': "✨ 📈 Sparkling High IV Hatch Detected 📈 ✨",
+            'shiny_low_iv': "✨ 📉 Sparkling Low IV Hatch Detected 📉 ✨",
+            'gmax_high_iv': "<:gigantamax:1413843021241384960> 📈 Gigantamax High IV Hatch Detected 📈 <:gigantamax:1413843021241384960>",
+            'gmax_low_iv': "<:gigantamax:1413843021241384960> 📉 Gigantamax Low IV Hatch Detected 📉 <:gigantamax:1413843021241384960>",
+            'gigantamax': "<:gigantamax:1413843021241384960> Gigantamax Hatch Detected <:gigantamax:1413843021241384960>",
+            'shiny': "✨ Sparkling Hatch Detected ✨",
+            'iv_high': "📈 Rare IV Hatch Detected 📈",
+            'iv_low': "📉 Rare IV Hatch Detected 📉"
+        }
 
-        elif embed_type == 'iv_high':
-            embed.title = "📈 Rare IV Hatch Detected 📈"
-            base_description = f"**Pokémon:** {pokemon_display}\n**Level:** {level}\n**IV:** {iv_display}"
-            if hatched_by_id:
-                embed.description = f"**Hatched By:** <@{hatched_by_id}>\n{base_description}"
-            else:
-                embed.description = base_description
-
-        elif embed_type == 'iv_low':
-            embed.title = "📉 Rare IV Hatch Detected 📉"
-            base_description = f"**Pokémon:** {pokemon_display}\n**Level:** {level}\n**IV:** {iv_display}"
-            if hatched_by_id:
-                embed.description = f"**Hatched By:** <@{hatched_by_id}>\n{base_description}"
-            else:
-                embed.description = base_description
-
-        # Handle Gigantamax Shiny combination
-        if is_gigantamax and is_shiny:
-            embed.title = "<:gigantamax:1413843021241384960> ✨ Gigantamax Sparkling Hatch Detected ✨ <:gigantamax:1413843021241384960>"
+        embed.title = embed_titles.get(embed_type, "Rare Hatch Detected")
+        embed.description = description
 
         if image_url:
             embed.set_thumbnail(url=image_url)
@@ -360,46 +349,57 @@ class Egg(commands.Cog):
         if global_starboard_id:
             global_starboard_channel = self.bot.get_channel(global_starboard_id)
 
-        embeds_to_send = []
+        # Determine IV category
+        is_high_iv = isinstance(iv, (int, float)) and iv >= 90
+        is_low_iv = isinstance(iv, (int, float)) and iv <= 10
 
-        # Determine what type of hatch this is
-        if is_gigantamax and is_shiny:
-            # Gigantamax Shiny (very rare)
-            embed, view = self.create_hatch_embed(hatch_data, 'gigantamax', original_message)
-            embeds_to_send.append((embed, view))
+        # Determine the embed type based on all combinations
+        embed_type = None
+
+        # Priority order: Most specific combinations first
+        if is_shiny and is_gigantamax and is_high_iv:
+            embed_type = 'shiny_gmax_high_iv'
+        elif is_shiny and is_gigantamax and is_low_iv:
+            embed_type = 'shiny_gmax_low_iv'
+        elif is_shiny and is_gigantamax:
+            embed_type = 'shiny_gmax'
+        elif is_shiny and is_high_iv:
+            embed_type = 'shiny_high_iv'
+        elif is_shiny and is_low_iv:
+            embed_type = 'shiny_low_iv'
+        elif is_gigantamax and is_high_iv:
+            embed_type = 'gmax_high_iv'
+        elif is_gigantamax and is_low_iv:
+            embed_type = 'gmax_low_iv'
         elif is_gigantamax:
-            # Gigantamax only
-            embed, view = self.create_hatch_embed(hatch_data, 'gigantamax', original_message)
-            embeds_to_send.append((embed, view))
+            embed_type = 'gigantamax'
         elif is_shiny:
-            # Shiny only
-            embed, view = self.create_hatch_embed(hatch_data, 'shiny', original_message)
-            embeds_to_send.append((embed, view))
+            embed_type = 'shiny'
+        elif is_high_iv:
+            embed_type = 'iv_high'
+        elif is_low_iv:
+            embed_type = 'iv_low'
 
-        # Check for rare IV (>90 or <10) - only if IV is a number
-        if isinstance(iv, (int, float)):
-            if iv >= 90:
-                embed, view = self.create_hatch_embed(hatch_data, 'iv_high', original_message)
-                embeds_to_send.append((embed, view))
-            elif iv <= 10:
-                embed, view = self.create_hatch_embed(hatch_data, 'iv_low', original_message)
-                embeds_to_send.append((embed, view))
+        # If no criteria met, don't send
+        if embed_type is None:
+            return
 
-        # Send to server starboard if configured and there are embeds to send
-        if server_starboard_channel and embeds_to_send:
-            for embed, view in embeds_to_send:
-                try:
-                    await server_starboard_channel.send(embed=embed, view=view)
-                except Exception as e:
-                    print(f"Error sending to server starboard: {e}")
+        # Create the embed
+        embed, view = self.create_hatch_embed(hatch_data, embed_type, original_message)
 
-        # Send to global starboard if configured and there are embeds to send
-        if global_starboard_channel and embeds_to_send:
-            for embed, view in embeds_to_send:
-                try:
-                    await global_starboard_channel.send(embed=embed, view=view)
-                except Exception as e:
-                    print(f"Error sending to global starboard: {e}")
+        # Send to server starboard if configured
+        if server_starboard_channel:
+            try:
+                await server_starboard_channel.send(embed=embed, view=view)
+            except Exception as e:
+                print(f"Error sending to server starboard: {e}")
+
+        # Send to global starboard if configured
+        if global_starboard_channel:
+            try:
+                await global_starboard_channel.send(embed=embed, view=view)
+            except Exception as e:
+                print(f"Error sending to global starboard: {e}")
 
     @commands.command(name="eggcheck")
     @commands.has_permissions(administrator=True)
