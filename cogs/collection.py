@@ -24,49 +24,41 @@ class CollectionPaginationView(discord.ui.View):
         self.previous_button.disabled = (current_page <= 1)
         self.next_button.disabled = (current_page >= total_pages)
 
-    @discord.ui.button(label="◀ Previous", style=discord.ButtonStyle.primary)
+    @discord.ui.button(label="", emoji="◀️", style=discord.ButtonStyle.primary)
     async def previous_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         if interaction.user.id != self.user_id:
             await interaction.response.send_message("This button is not for you!", ephemeral=True)
             return
 
         new_page = max(1, self.current_page - 1)
-        result = await self.cog.list_user_collection(self.user_id, self.guild_id, new_page)
+        embed = await self.cog.create_collection_embed(self.user_id, self.guild_id, new_page)
 
-        if isinstance(result, tuple):
-            content, page, total_pages = result
-            self.current_page = page
-            self.total_pages = total_pages
-
+        if embed:
+            self.current_page = new_page
             # Update button states
-            self.previous_button.disabled = (page <= 1)
-            self.next_button.disabled = (page >= total_pages)
-
-            await interaction.response.edit_message(content=content, view=self)
+            self.previous_button.disabled = (new_page <= 1)
+            self.next_button.disabled = (new_page >= self.total_pages)
+            await interaction.response.edit_message(embed=embed, view=self)
         else:
-            await interaction.response.edit_message(content=result, view=None)
+            await interaction.response.edit_message(content="Error loading collection.", embed=None, view=None)
 
-    @discord.ui.button(label="Next ▶", style=discord.ButtonStyle.primary)
+    @discord.ui.button(label="", emoji="▶️", style=discord.ButtonStyle.primary)
     async def next_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         if interaction.user.id != self.user_id:
             await interaction.response.send_message("This button is not for you!", ephemeral=True)
             return
 
         new_page = min(self.total_pages, self.current_page + 1)
-        result = await self.cog.list_user_collection(self.user_id, self.guild_id, new_page)
+        embed = await self.cog.create_collection_embed(self.user_id, self.guild_id, new_page)
 
-        if isinstance(result, tuple):
-            content, page, total_pages = result
-            self.current_page = page
-            self.total_pages = total_pages
-
+        if embed:
+            self.current_page = new_page
             # Update button states
-            self.previous_button.disabled = (page <= 1)
-            self.next_button.disabled = (page >= total_pages)
-
-            await interaction.response.edit_message(content=content, view=self)
+            self.previous_button.disabled = (new_page <= 1)
+            self.next_button.disabled = (new_page >= self.total_pages)
+            await interaction.response.edit_message(embed=embed, view=self)
         else:
-            await interaction.response.edit_message(content=result, view=None)
+            await interaction.response.edit_message(content="Error loading collection.", embed=None, view=None)
 
 class Collection(commands.Cog):
     def __init__(self, bot):
@@ -206,7 +198,7 @@ class Collection(commands.Cog):
                         normalized_base_form = normalize_pokemon_name(base_form).lower()
                         if any(normalize_pokemon_name(p).lower() == normalized_base_form 
                                for p in user_pokemon):
-                            if user_id not in collectors:  # Avoid duplicatess
+                            if user_id not in collectors:  # Avoid duplicates
                                 collectors.append(user_id)
 
             self._set_cache(self._collectors_cache, cache_key, collectors)
@@ -258,7 +250,7 @@ class Collection(commands.Cog):
                             hunters.append(f"<@{user_id}>")
                         continue
 
-                    # Check for variant matchings
+                    # Check for variant matching
                     target_pokemon = find_pokemon_by_name(pokemon_name, pokemon_data)
                     if target_pokemon and target_pokemon.get('is_variant'):
                         base_form = target_pokemon.get('variant_of')
@@ -385,33 +377,6 @@ class Collection(commands.Cog):
             print(f"Error toggling shiny hunt AFK status: {e}")
             return f"Database error: {str(e)[:100]}", False
 
-    async def toggle_rare_ping(self, user_id, guild_id):
-        """Toggle user's rare ping status for a guild"""
-        if self.db is None:
-            return "Database not available", False
-
-        try:
-            current_rare = await self.db.rare_pings.find_one(
-                {"user_id": user_id, "guild_id": guild_id}
-            )
-
-            if current_rare and current_rare.get('enabled', False):
-                await self.db.rare_pings.update_one(
-                    {"user_id": user_id, "guild_id": guild_id},
-                    {"$set": {"enabled": False}}
-                )
-                return "Rare pings disabled. You won't be pinged for Legendary, Mythical, or Ultra Beast Pokemon.", False
-            else:
-                await self.db.rare_pings.update_one(
-                    {"user_id": user_id, "guild_id": guild_id},
-                    {"$set": {"user_id": user_id, "guild_id": guild_id, "enabled": True}},
-                    upsert=True
-                )
-                return "Rare pings enabled. You will be pinged for Legendary, Mythical, and Ultra Beast Pokemon.", True
-        except Exception as e:
-            print(f"Error toggling rare ping status: {e}")
-            return f"Database error: {str(e)[:100]}", False
-
     async def is_user_collection_afk(self, user_id, guild_id):
         """Check if a user is collection AFK"""
         if self.db is None:
@@ -438,20 +403,6 @@ class Collection(commands.Cog):
             return afk_doc and afk_doc.get('afk', False)
         except Exception as e:
             print(f"Error checking shiny hunt AFK status: {e}")
-            return False
-
-    async def is_rare_ping_enabled(self, user_id, guild_id):
-        """Check if a user has rare pings enabled"""
-        if self.db is None:
-            return False
-
-        try:
-            rare_doc = await self.db.rare_pings.find_one(
-                {"user_id": user_id, "guild_id": guild_id}
-            )
-            return rare_doc and rare_doc.get('enabled', False)
-        except Exception as e:
-            print(f"Error checking rare ping status: {e}")
             return False
 
     async def set_shiny_hunt(self, user_id, guild_id, pokemon_name):
@@ -676,10 +627,10 @@ class Collection(commands.Cog):
             print(f"Database error in clear_user_collection: {e}")
             return f"Database error: {str(e)[:100]}"
 
-    async def list_user_collection(self, user_id, guild_id, page=1):
-        """List user's Pokemon collection for the guild with pagination"""
+    async def create_collection_embed(self, user_id, guild_id, page=1):
+        """Create an embed for user's Pokemon collection with pagination"""
         if self.db is None:
-            return "Database not available"
+            return None
 
         try:
             collection = await self.db.collections.find_one(
@@ -687,10 +638,15 @@ class Collection(commands.Cog):
             )
 
             if not collection or not collection.get('pokemon'):
-                return "Your collection is empty"
+                embed = discord.Embed(
+                    title="📦 Your Collection",
+                    description="Your collection is empty! Start adding Pokémon with `m!cl add <pokemon>`",
+                    color=0xf4e5ba
+                )
+                return embed
 
             pokemon_list = sorted(collection['pokemon'])
-            items_per_page = 150
+            items_per_page = 20
             total_pages = math.ceil(len(pokemon_list) / items_per_page)
 
             page = max(1, min(page, total_pages))
@@ -699,53 +655,55 @@ class Collection(commands.Cog):
             end_index = start_index + items_per_page
             page_pokemon = pokemon_list[start_index:end_index]
 
-            response = f"**__Your collection ({len(pokemon_list)} Pokemon) - Page {page}/{total_pages}:\n__**"
-            response += ", ".join(page_pokemon)
+            # Create embed with enhanced look - one Pokemon per line
+            description = "\n".join([f"• {pokemon}" for pokemon in page_pokemon])
 
-            return response, page, total_pages
+            embed = discord.Embed(
+                title="📦 Your Collection for this Server",
+                description=description,
+                color=0xf4e5ba
+            )
+
+            embed.set_footer(text=f"Showing {start_index + 1}-{min(end_index, len(pokemon_list))} of {len(pokemon_list)} Pokémon that you are collecting! • Page {page}/{total_pages}")
+
+            return embed
 
         except Exception as e:
-            print(f"Database error in list_user_collection: {e}")
-            return f"Database error: {str(e)[:100]}"
-
-    @commands.command(name="rareping")
-    async def rare_ping_command(self, ctx):
-        """Toggle rare ping status for Legendary, Mythical, and Ultra Beast Pokemon"""
-        message, enabled = await self.toggle_rare_ping(ctx.author.id, ctx.guild.id)
-        await ctx.reply(message)
+            print(f"Database error in create_collection_embed: {e}")
+            return None
 
     @commands.command(name="sh")
     async def shiny_hunt_command(self, ctx, *, args: str = None):
         """Manage shiny hunt - set, clear, or check current hunt"""
         if not args:
             result = await self.get_user_shiny_hunt(ctx.author.id, ctx.guild.id)
-            await ctx.reply(result)
+            await ctx.reply(result, mention_author=False)
             return
 
         args = args.strip().lower()
 
         if args in ["clear", "none"]:
             result = await self.clear_shiny_hunt(ctx.author.id, ctx.guild.id)
-            await ctx.reply(result)
+            await ctx.reply(result, mention_author=False)
             return
 
         pokemon_names = [name.strip() for name in args.split(",") if name.strip()]
 
         if len(pokemon_names) > 1:
-            await ctx.reply("You can't hunt more than one Pokemon!")
+            await ctx.reply("You can't hunt more than one Pokemon!", mention_author=False)
             return
 
         if len(pokemon_names) == 1:
             result = await self.set_shiny_hunt(ctx.author.id, ctx.guild.id, pokemon_names[0])
-            await ctx.reply(result)
+            await ctx.reply(result, mention_author=False)
         else:
-            await ctx.reply("Please provide a Pokemon name to hunt, or use 'clear'/'none' to stop hunting.")
+            await ctx.reply("Please provide a Pokemon name to hunt, or use 'clear'/'none' to stop hunting.", mention_author=False)
 
     @commands.group(name="cl", invoke_without_command=True)
     async def collection_group(self, ctx):
         """Collection management commands"""
         if ctx.invoked_subcommand is None:
-            await ctx.reply("Usage: m!cl [add/remove/clear/list] [pokemon names]")
+            await ctx.reply("Usage: m!cl [add/remove/clear/list] [pokemon names]", mention_author=False)
 
     @collection_group.command(name="add")
     async def collection_add(self, ctx, *, pokemon_names: str):
@@ -753,11 +711,11 @@ class Collection(commands.Cog):
         pokemon_names_list = [name.strip() for name in pokemon_names.split(",") if name.strip()]
 
         if not pokemon_names_list:
-            await ctx.reply("No valid Pokemon names provided")
+            await ctx.reply("No valid Pokemon names provided", mention_author=False)
             return
 
         result = await self.add_pokemon_to_collection(ctx.author.id, ctx.guild.id, pokemon_names_list)
-        await ctx.reply(result)
+        await ctx.reply(result, mention_author=False)
 
     @collection_group.command(name="remove")
     async def collection_remove(self, ctx, *, pokemon_names: str):
@@ -765,33 +723,43 @@ class Collection(commands.Cog):
         pokemon_names_list = [name.strip() for name in pokemon_names.split(",") if name.strip()]
 
         if not pokemon_names_list:
-            await ctx.reply("No valid Pokemon names provided")
+            await ctx.reply("No valid Pokemon names provided", mention_author=False)
             return
 
         result = await self.remove_pokemon_from_collection(ctx.author.id, ctx.guild.id, pokemon_names_list)
-        await ctx.reply(result)
+        await ctx.reply(result, mention_author=False)
 
     @collection_group.command(name="clear")
     async def collection_clear(self, ctx):
         """Clear your entire collection"""
         result = await self.clear_user_collection(ctx.author.id, ctx.guild.id)
-        await ctx.reply(result)
+        await ctx.reply(result, mention_author=False)
 
     @collection_group.command(name="list")
     async def collection_list(self, ctx):
-        """List your Pokemon collection"""
-        result = await self.list_user_collection(ctx.author.id, ctx.guild.id, 1)
+        """List your Pokemon collection in an embed"""
+        embed = await self.create_collection_embed(ctx.author.id, ctx.guild.id, 1)
 
-        if isinstance(result, tuple):
-            content, page, total_pages = result
+        if embed:
+            # Check if there are multiple pages
+            collection = await self.db.collections.find_one(
+                {"user_id": ctx.author.id, "guild_id": ctx.guild.id}
+            )
 
-            if total_pages > 1:
-                view = CollectionPaginationView(ctx.author.id, ctx.guild.id, page, total_pages, self)
-                await ctx.reply(content, view=view)
+            if collection and collection.get('pokemon'):
+                pokemon_list = collection['pokemon']
+                items_per_page = 20
+                total_pages = math.ceil(len(pokemon_list) / items_per_page)
+
+                if total_pages > 1:
+                    view = CollectionPaginationView(ctx.author.id, ctx.guild.id, 1, total_pages, self)
+                    await ctx.reply(embed=embed, view=view, mention_author=False)
+                else:
+                    await ctx.reply(embed=embed, mention_author=False)
             else:
-                await ctx.reply(content)
+                await ctx.reply(embed=embed, mention_author=False)
         else:
-            await ctx.reply(result)
+            await ctx.reply("Error loading collection.", mention_author=False)
 
 async def setup(bot):
     await bot.add_cog(Collection(bot))
