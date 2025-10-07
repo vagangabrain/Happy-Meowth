@@ -35,11 +35,11 @@ class Egg(commands.Cog):
     def get_gender_emoji(self, gender):
         """Get gender emoji based on gender"""
         if gender == 'male':
-            return "<:male:1386677873586470932>"
+            return "<:male:1420708128785170453>"
         elif gender == 'female':
-            return "<:female:1386678736971104339>"
+            return "<:female:1420708136943095889>"
         elif gender == 'unknown':
-            return "<:unknown:1386678775487664200>"
+            return "<:unknown:1420708112310210560>"
         else:
             return ""
 
@@ -135,25 +135,24 @@ class Egg(commands.Cog):
 
     def parse_poketwo_hatch_message(self, message_content, hatched_by_id=None):
         """Parse Poketwo egg hatch message to extract relevant information"""
-        
+
         # Pattern for Gigantamax hatches (with or without shiny)
         # Format: Your <egg> **Gigantamax Pokemon Egg** has hatched into a **<:_:id> (✨ )?Level X <:_:1242455099213877248> Gigantamax Pokemon<gender> (IV%)**
-        # Name is between <:_:1242455099213877248> and gender emoji
-        gigantamax_pattern = r"Your <:egg_[^>]+> \*\*(.+?) Egg\*\* has hatched into a \*\*<:_:\d+> (✨ )?Level (\d+) <:_:1242455099213877248> (.+?)(<:[^:]+:\d+>)\s*\((\d+\.?\d*)%\)\*\*"
-        
+        gigantamax_pattern = r"Your <:egg_[^>]+> \*\*Gigantamax (.+?) Egg\*\* has hatched into a \*\*<:_:\d+> (✨ )?Level (\d+) <:_:1242455099213877248> Gigantamax (.+?)(<:[^:]+:\d+>)\s*\((\d+\.?\d*)%\)\*\*"
+
         # Try Gigantamax pattern first
         match = re.search(gigantamax_pattern, message_content)
-        
+
         if match:
-            egg_pokemon = match.group(1).strip()
+            egg_pokemon = match.group(1).strip()  # Pokemon name from egg (e.g., "Meowth")
             is_shiny = match.group(2) is not None  # ✨ indicates shiny
             level = match.group(3)
-            pokemon_name = match.group(4).strip()  # Full name including "Gigantamax Pokemon"
+            pokemon_name = match.group(4).strip()  # Pokemon name after hatch (e.g., "Meowth")
             gender_emoji = match.group(5)  # Gender emoji
             iv_str = match.group(6)
-            
+
             is_gigantamax = True
-            
+
             # Extract gender from emoji
             gender = None
             if gender_emoji:
@@ -163,12 +162,12 @@ class Egg(commands.Cog):
                     gender = 'female'
                 elif 'unknown:' in gender_emoji:
                     gender = 'unknown'
-            
+
             # Parse IV
             iv = float(iv_str) if iv_str else "Hidden"
-            
-            print(f"DEBUG: Gigantamax hatch parsed - Full Name: '{pokemon_name}', Gender: '{gender}', Shiny: {is_shiny}, IV: {iv}")
-            
+
+            print(f"DEBUG: Gigantamax hatch parsed - Pokemon: '{pokemon_name}', Gender: '{gender}', Shiny: {is_shiny}, IV: {iv}")
+
             return {
                 'egg_pokemon': egg_pokemon,
                 'level': level,
@@ -180,7 +179,7 @@ class Egg(commands.Cog):
                 'message_type': 'hatch',
                 'hatched_by_id': hatched_by_id
             }
-        
+
         # Pattern for regular hatches (non-Gigantamax)
         # Format: Your <egg> **Pokemon Egg** has hatched into a **<:_:id> (✨ )?Level X Pokemon<gender> (IV%)?**
         regular_pattern = r"Your <:egg_[^>]+> \*\*(.+?) Egg\*\* has hatched into a \*\*<:_:\d+> (✨ )?Level (\d+) (.+?)(?:\s+\((\d+\.?\d*)%\))?\*\*"
@@ -299,14 +298,14 @@ class Egg(commands.Cog):
 
         # Set title and description based on embed type
         embed_titles = {
-            'shiny_gmax_high_iv': "<:gigantamax:1413843021241384960> ✨ 📈 Ultimate Hatch - Shiny Gigantamax High IV! 📈 ✨ <:gigantamax:1413843021241384960>",
-            'shiny_gmax_low_iv': "<:gigantamax:1413843021241384960> ✨ 📉 Ultimate Hatch - Shiny Gigantamax Low IV! 📉 ✨ <:gigantamax:1413843021241384960>",
-            'shiny_gmax': "<:gigantamax:1413843021241384960> ✨ Gigantamax Sparkling Hatch Detected ✨ <:gigantamax:1413843021241384960>",
+            'shiny_gmax_high_iv': "<:gigantamax:1420708122267226202> ✨ 📈 Ultimate Hatch - Shiny Gigantamax High IV! 📈 ✨ <:gigantamax:1420708122267226202>",
+            'shiny_gmax_low_iv': "<:gigantamax:1420708122267226202> ✨ 📉 Ultimate Hatch - Shiny Gigantamax Low IV! 📉 ✨ <:gigantamax:1420708122267226202>",
+            'shiny_gmax': "<:gigantamax:1420708122267226202> ✨ Gigantamax Sparkling Hatch Detected ✨ <:gigantamax:1420708122267226202>",
             'shiny_high_iv': "✨ 📈 Sparkling High IV Hatch Detected 📈 ✨",
             'shiny_low_iv': "✨ 📉 Sparkling Low IV Hatch Detected 📉 ✨",
-            'gmax_high_iv': "<:gigantamax:1413843021241384960> 📈 Gigantamax High IV Hatch Detected 📈 <:gigantamax:1413843021241384960>",
-            'gmax_low_iv': "<:gigantamax:1413843021241384960> 📉 Gigantamax Low IV Hatch Detected 📉 <:gigantamax:1413843021241384960>",
-            'gigantamax': "<:gigantamax:1413843021241384960> Gigantamax Hatch Detected <:gigantamax:1413843021241384960>",
+            'gmax_high_iv': "<:gigantamax:1420708122267226202> 📈 Gigantamax High IV Hatch Detected 📈 <:gigantamax:1420708122267226202>",
+            'gmax_low_iv': "<:gigantamax:1420708122267226202> 📉 Gigantamax Low IV Hatch Detected 📉 <:gigantamax:1420708122267226202>",
+            'gigantamax': "<:gigantamax:1420708122267226202> Gigantamax Hatch Detected <:gigantamax:1420708122267226202>",
             'shiny': "✨ Sparkling Hatch Detected ✨",
             'iv_high': "📈 Rare IV Hatch Detected 📈",
             'iv_low': "📉 Rare IV Hatch Detected 📉"
@@ -318,7 +317,7 @@ class Egg(commands.Cog):
         if image_url:
             embed.set_thumbnail(url=image_url)
 
-        # Create view with jump to message buttonn
+        # Create view with jump to message button
         view = discord.ui.View()
         if message:
             jump_button = discord.ui.Button(
@@ -570,13 +569,14 @@ class Egg(commands.Cog):
         if message.author.id != 716390085896962058:
             return
 
-        # Check if it's a hatch message
-        if "Egg has hatched into" in message.content:
+        # Check if it's a hatch message - more flexible detection
+        if "has hatched into" in message.content and "Egg" in message.content:
             # Get the user who hatched the egg from the reply
             hatched_by_id = await self.get_hatched_by_user(message)
             hatch_data = self.parse_poketwo_hatch_message(message.content, hatched_by_id)
 
             if not hatch_data:
+                print(f"DEBUG: Failed to parse hatch message: {message.content[:100]}...")
                 return
 
             # Check if this hatch is worthy of starboard
@@ -584,8 +584,11 @@ class Egg(commands.Cog):
             is_gigantamax = hatch_data['is_gigantamax']
             iv = hatch_data['iv']
 
+            print(f"DEBUG: Hatch detected - Shiny: {is_shiny}, Gigantamax: {is_gigantamax}, IV: {iv}")
+
             # Check criteria: shiny, gigantamax, or rare IV
             if is_shiny or is_gigantamax or (isinstance(iv, (int, float)) and (iv >= 90 or iv <= 10)):
+                print(f"DEBUG: Sending to starboard - Pokemon: {hatch_data['pokemon_name']}")
                 await self.send_to_starboard_channels(message.guild, hatch_data, message)
 
 async def setup(bot):
