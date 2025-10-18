@@ -4,6 +4,7 @@ import json
 import os
 from datetime import datetime
 from discord.ext import commands
+from config import EMBED_COLOR
 
 class Unbox(commands.Cog):
     def __init__(self, bot):
@@ -229,8 +230,8 @@ class Unbox(commands.Cog):
         # Check if this is a box opening message by looking at title keywords
         title = embed.title or ""
 
-        # More flexible title checking
-        opening_keywords = ['open', 'opening', 'box', 'chest', 'mystery', 'egg', 'eggs']
+        # More flexible title checking - includes all bundle types
+        opening_keywords = ['open', 'opening', 'box', 'chest', 'mystery', 'egg', 'eggs', 'bundle', 'puddle', 'rain', 'storm']
         is_opening_message = any(keyword.lower() in title.lower() for keyword in opening_keywords)
 
         if not is_opening_message:
@@ -244,13 +245,10 @@ class Unbox(commands.Cog):
                 pokemon_data['message_type'] = 'unbox'
                 pokemon_found.append(pokemon_data)
 
-        # Try to extract Pokemon from fields (like "Rewards Received")
+        # Try to extract Pokemon from ALL fields regardless of name
+        # This handles any number of bundle fields dynamically
         for field in embed.fields:
-            # Look for fields that might contain Pokemon rewards
-            field_name = field.name.lower()
-            reward_keywords = ['reward', 'received', 'found', 'obtained', 'contents', 'items']
-
-            if any(keyword in field_name for keyword in reward_keywords) and field.value:
+            if field.value:  # Check if field has any value
                 pokemon_from_field = self.extract_pokemon_from_text(field.value)
                 for pokemon_data in pokemon_from_field:
                     pokemon_data['unboxed_by_id'] = unboxed_by_id
@@ -287,7 +285,7 @@ class Unbox(commands.Cog):
         # Get Pokemon image URL with gender and Gigantamax support
         image_url = self.find_pokemon_image_url(pokemon_name, is_shiny, gender, is_gigantamax)
 
-        embed = discord.Embed(color=0xf4e5ba, timestamp=datetime.utcnow())
+        embed = discord.Embed(color=EMBED_COLOR, timestamp=datetime.utcnow())
 
         if embed_type == 'gigantamax_shiny':
             embed.title = "<:gigantamax:1420708122267226202> ✨ Gigantamax Shiny Unbox Detected ✨ <:gigantamax:1420708122267226202>"
@@ -551,8 +549,8 @@ class Unbox(commands.Cog):
         embed = message.embeds[0]
         title = embed.title or ""
 
-        # More flexible title checking for various box/egg opening formats
-        opening_keywords = ['open', 'opening', 'box', 'chest', 'mystery', 'egg', 'eggs']
+        # More flexible title checking for all bundle types and opening formats
+        opening_keywords = ['open', 'opening', 'box', 'chest', 'mystery', 'egg', 'eggs', 'bundle', 'puddle', 'rain', 'storm']
         is_opening_message = any(keyword.lower() in title.lower() for keyword in opening_keywords)
 
         if not is_opening_message:
