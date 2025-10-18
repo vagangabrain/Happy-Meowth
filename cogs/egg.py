@@ -4,6 +4,7 @@ import json
 import os
 from datetime import datetime
 from discord.ext import commands
+from config import EMBED_COLOR
 
 class Egg(commands.Cog):
     def __init__(self, bot):
@@ -287,7 +288,7 @@ class Egg(commands.Cog):
         # Get Pokemon image URL with gender and Gigantamax support
         image_url = self.find_pokemon_image_url(pokemon_name, is_shiny, gender, is_gigantamax)
 
-        embed = discord.Embed(color=0xf4e5ba, timestamp=datetime.utcnow())
+        embed = discord.Embed(color=EMBED_COLOR, timestamp=datetime.utcnow())
 
         # Base description builder
         base_description = f"**Pokémon:** {pokemon_display}\n**Level:** {level}\n**IV:** {iv_display}"
@@ -298,17 +299,17 @@ class Egg(commands.Cog):
 
         # Set title and description based on embed type
         embed_titles = {
-            'shiny_gmax_high_iv': "<:gigantamax:1420708122267226202> ✨ 📈 Ultimate Hatch - Shiny Gigantamax High IV! 📈 ✨ <:gigantamax:1420708122267226202>",
-            'shiny_gmax_low_iv': "<:gigantamax:1420708122267226202> ✨ 📉 Ultimate Hatch - Shiny Gigantamax Low IV! 📉 ✨ <:gigantamax:1420708122267226202>",
-            'shiny_gmax': "<:gigantamax:1420708122267226202> ✨ Gigantamax Sparkling Hatch Detected ✨ <:gigantamax:1420708122267226202>",
-            'shiny_high_iv': "✨ 📈 Sparkling High IV Hatch Detected 📈 ✨",
-            'shiny_low_iv': "✨ 📉 Sparkling Low IV Hatch Detected 📉 ✨",
-            'gmax_high_iv': "<:gigantamax:1420708122267226202> 📈 Gigantamax High IV Hatch Detected 📈 <:gigantamax:1420708122267226202>",
-            'gmax_low_iv': "<:gigantamax:1420708122267226202> 📉 Gigantamax Low IV Hatch Detected 📉 <:gigantamax:1420708122267226202>",
-            'gigantamax': "<:gigantamax:1420708122267226202> Gigantamax Hatch Detected <:gigantamax:1420708122267226202>",
-            'shiny': "✨ Sparkling Hatch Detected ✨",
-            'iv_high': "📈 Rare IV Hatch Detected 📈",
-            'iv_low': "📉 Rare IV Hatch Detected 📉"
+            'shiny_gmax_high_iv': "<:egg:1427226230352117825><:gigantamax:1420708122267226202> ✨ 📈 Ultimate Hatch - Shiny Gigantamax High IV! 📈 ✨ <:gigantamax:1420708122267226202><:egg:1427226230352117825>",
+            'shiny_gmax_low_iv': "<:egg:1427226230352117825><:gigantamax:1420708122267226202> ✨ 📉 Ultimate Hatch - Shiny Gigantamax Low IV! 📉 ✨ <:gigantamax:1420708122267226202><:egg:1427226230352117825>",
+            'shiny_gmax': "<:egg:1427226230352117825><:gigantamax:1420708122267226202> ✨ Gigantamax Sparkling Hatch Detected ✨ <:gigantamax:1420708122267226202><:egg:1427226230352117825>",
+            'shiny_high_iv': "<:egg:1427226230352117825>✨ 📈 Sparkling High IV Hatch Detected 📈 ✨<:egg:1427226230352117825>",
+            'shiny_low_iv': "<:egg:1427226230352117825>✨ 📉 Sparkling Low IV Hatch Detected 📉 ✨<:egg:1427226230352117825>",
+            'gmax_high_iv': "<:egg:1427226230352117825><:gigantamax:1420708122267226202> 📈 Gigantamax High IV Hatch Detected 📈 <:gigantamax:1420708122267226202><:egg:1427226230352117825>",
+            'gmax_low_iv': "<:egg:1427226230352117825><:gigantamax:1420708122267226202> 📉 Gigantamax Low IV Hatch Detected 📉 <:gigantamax:1420708122267226202><:egg:1427226230352117825>",
+            'gigantamax': "<:egg:1427226230352117825><:gigantamax:1420708122267226202> Gigantamax Hatch Detected <:gigantamax:1420708122267226202><:egg:1427226230352117825>",
+            'shiny': "<:egg:1427226230352117825>✨ Sparkling Hatch Detected ✨<:egg:1427226230352117825>",
+            'iv_high': "<:egg:1427226230352117825>📈 Rare IV Hatch Detected 📈<:egg:1427226230352117825>",
+            'iv_low': "<:egg:1427226230352117825>📉 Rare IV Hatch Detected 📉<:egg:1427226230352117825>"
         }
 
         embed.title = embed_titles.get(embed_type, "Rare Hatch Detected")
