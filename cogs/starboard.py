@@ -4,6 +4,7 @@ import json
 import os
 from datetime import datetime
 from discord.ext import commands
+from config import EMBED_COLOR
 
 class Starboard(commands.Cog):
     def __init__(self, bot):
@@ -338,7 +339,7 @@ class Starboard(commands.Cog):
         # Get Pokemon image URL with gender and Gigantamax support
         image_url = self.find_pokemon_image_url(pokemon_name, is_shiny, gender, is_gigantamax)
 
-        embed = discord.Embed(color=0xf4e5ba, timestamp=datetime.utcnow())
+        embed = discord.Embed(color=EMBED_COLOR, timestamp=datetime.utcnow())
 
         if message_type == 'catch':
             user_id = catch_data['user_id']
@@ -837,7 +838,7 @@ class Starboard(commands.Cog):
 
         embed = discord.Embed(
             title=f"Server Settings for {ctx.guild.name}",
-            color=0xf4e5ba,
+            color=EMBED_COLOR,
             timestamp=datetime.utcnow()
         )
 
