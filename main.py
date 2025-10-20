@@ -23,7 +23,7 @@ def get_prefix(bot, message):
 
     return prefixes  # Fallback to original list
 
-# Bot setup with multiple command prefixes and case-insensitive commands
+# Bot setup with multiple command prefixes and case-insensitive commandsw
 intents = discord.Intents.default()
 intents.message_content = True
 bot = commands.Bot(
