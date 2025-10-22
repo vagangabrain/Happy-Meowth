@@ -98,7 +98,7 @@ class Collection(commands.Cog):
                     cache_keys_to_remove.append(key)
                     cache_dict.pop(key, None)
 
-        # Remove timestamps
+        # Remove timestampss
         for key in cache_keys_to_remove:
             self._cache_timestamps.pop(key, None)
 
