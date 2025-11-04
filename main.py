@@ -172,16 +172,21 @@ async def on_ready():
 
     # Load cogs
     try:
+        # Load Jishaku for debugging/admin commands
+        await bot.load_extension('jishaku')
+        print("✅ Jishaku loaded")
+        
+        # Load custom cogs
         await bot.load_extension('cogs.general')
         await bot.load_extension('cogs.help')
         await bot.load_extension('cogs.collection')
         await bot.load_extension('cogs.starboard')
         await bot.load_extension('cogs.unbox')
         await bot.load_extension('cogs.egg')
-        await bot.load_extension('cogs.messagecmd')  # Load the new message command cog
-        print("All cogs loaded successfully")
+        await bot.load_extension('cogs.messagecmd')
+        print("✅ All cogs loaded successfully")
     except Exception as e:
-        print(f"Error loading cogs: {e}")
+        print(f"❌ Error loading cogs: {e}")
 
     # Start keep-alive task for Railway
     asyncio.create_task(keep_alive())
