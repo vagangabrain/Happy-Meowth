@@ -406,8 +406,8 @@ class General(commands.Cog):
                                     try:
                                         confidence_value = float(confidence_str)
 
-                                        # Handle high confidence predictions (>= 40%)
-                                        if confidence_value >= 40.0:
+                                        # Handle high confidence predictions (>= 80%)
+                                        if confidence_value >= 80.0:
                                             formatted_output = format_pokemon_prediction(name, confidence)
 
                                             # Get all ping information concurrently
@@ -435,7 +435,7 @@ class General(commands.Cog):
 
                                             await message.reply(formatted_output)
 
-                                        # Handle low confidence predictions (< 70%) - Event Pokemon
+                                        # Handle low confidence predictions (< 80%) - Event Pokemon
                                         else:
                                             formatted_output = f"Event Pokemon: {confidence}"
 
