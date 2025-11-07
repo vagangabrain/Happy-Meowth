@@ -4483,25 +4483,33 @@
     "name": "Pecharunt",
     "image_url": "https://cdn.poketwo.net/images/1025.png"
   },
+  "pokemon_50248": {
+    "name": "Chicombusken",
+    "image_url": "https://cdn.poketwo.net/images/50248.png"
+  },
+  "pokemon_50249": {
+    "name": "Cloubat",
+    "image_url": "https://cdn.poketwo.net/images/50249.png"
+  },
+  "pokemon_50250": {
+    "name": "Foombrella",
+    "image_url": "https://cdn.poketwo.net/images/50250.png"
+  },
+  "pokemon_50251": {
+    "name": "Muddy Goomy",
+    "image_url": "https://cdn.poketwo.net/images/50251.png"
+  },
+  "pokemon_50252": {
+    "name": "Foroark",
+    "image_url": "https://cdn.poketwo.net/images/50252.png"
+  },
+  "pokemon_50253": {
+    "name": "Bonnersby",
+    "image_url": "https://cdn.poketwo.net/images/50253.png"
+  },
   "pokemon_50254": {
     "name": "Fazwear",
     "image_url": "https://cdn.poketwo.net/images/50254.png"
-  },
-  "pokemon_50244": {
-    "name": "Cloubat",
-    "image_url": "https://cdn.poketwo.net/images/50244.png"
-  },
-  "pokemon_50245": {
-    "name": "Foombrella",
-    "image_url": "https://cdn.poketwo.net/images/50245.png"
-  },
-  "pokemon_50246": {
-    "name": "Muddy Goomy",
-    "image_url": "https://cdn.poketwo.net/images/50246.png"
-  },
-  "pokemon_50247": {
-    "name": "Raincoat Grafaiai",
-    "image_url": "https://cdn.poketwo.net/images/50247.png"
   },
   "pokemon_65": {
     "name": "Alakazam",
