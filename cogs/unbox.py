@@ -294,9 +294,9 @@ class Unbox(commands.Cog):
         elif embed_type == 'shiny':
             embed.title = "<a:animatedgiftbox:1421047436625055754>  ✨ Shiny Unbox Detected ✨ <a:animatedgiftbox:1421047436625055754> "
         elif embed_type == 'iv_high':
-            embed.title = "<:giftbox:1421047453511323658> 📈 Decent IV Unboxed 📈 <:giftbox:1421047453511323658>"
+            embed.title = "<:giftbox:1421047453511323658> 📈 High IV Unboxed 📈 <:giftbox:1421047453511323658>"
         elif embed_type == 'iv_low':
-            embed.title = "<:giftbox:1421047453511323658> 📉 Rare Low IV Unboxed 📉 <:giftbox:1421047453511323658>"
+            embed.title = "<:giftbox:1421047453511323658> 📉 Low IV Unboxed 📉 <:giftbox:1421047453511323658>"
 
         # Build description
         base_description = f"**Pokémon:** {pokemon_display}\n**Level:** {level}\n**IV:** {iv_display}"
