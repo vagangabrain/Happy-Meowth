@@ -407,7 +407,7 @@ class General(commands.Cog):
                                         confidence_value = float(confidence_str)
 
                                         # Handle high confidence predictions (>= 80%)
-                                        if confidence_value >= 80.0:
+                                        if confidence_value >= 55.0:
                                             formatted_output = format_pokemon_prediction(name, confidence)
 
                                             # Get all ping information concurrently
