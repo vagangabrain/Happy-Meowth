@@ -3,6 +3,10 @@
     "name": "Missingno.",
     "image_url": "https://cdn.poketwo.net/images/0.png"
   },
+  "pokemon_1": {
+    "name": "Bulbasaur",
+    "image_url": "https://cdn.poketwo.net/images/1.png"
+  },
   "pokemon_2": {
     "name": "Ivysaur",
     "image_url": "https://cdn.poketwo.net/images/2.png"
@@ -4492,11 +4496,11 @@
     "image_url": "https://cdn.poketwo.net/images/50249.png"
   },
   "pokemon_50250": {
-    "name": "Foombrella",
+    "name": "Drifboy",
     "image_url": "https://cdn.poketwo.net/images/50250.png"
   },
   "pokemon_50251": {
-    "name": "Muddy Goomy",
+    "name": "Leavanette",
     "image_url": "https://cdn.poketwo.net/images/50251.png"
   },
   "pokemon_50252": {
