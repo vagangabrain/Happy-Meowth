@@ -4492,7 +4492,7 @@
     "image_url": "https://cdn.poketwo.net/images/50248.png"
   },
   "pokemon_50249": {
-    "name": "Cloubat",
+    "name": "Soluna",
     "image_url": "https://cdn.poketwo.net/images/50249.png"
   },
   "pokemon_50250": {
